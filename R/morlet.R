@@ -23,6 +23,7 @@ morlet <- function(omega, s, t_k, t) {
 #' @param s scale parameter for this wavelet (a scalar).
 #' @param omega_a the analysis frequency to be used (a scalar). Must be the DFT bin, not a frequency in Hertz.
 #' @param omega a vector of frequencies to be considered.  Must be the DFT bin, not a frequency in Hertz.
+#' @export
 morlet_fourier <- function(s, omega_a, omega) {
   2 * (torch::torch_exp(-torch::torch_square(
     s * (omega - omega_a) / omega_a

@@ -13,3 +13,15 @@ test_that("wavelet transform in Fourier domain", {
 
 })
 
+test_that("wavelet transform from specs", {
+
+  fs <- 8000
+  f1 <- 100
+  s <- 5
+  omega <- 2 * pi * f1
+
+  x <- torch::torch_arange(1, 20)
+
+  expect_equal(dim(wavelet_transform_from_specs("morlet", x, omega, s, fs)), 20)
+
+})
