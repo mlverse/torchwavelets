@@ -3,7 +3,7 @@ test_that("wavelet grid", {
   fs <- 8000
   f1 <- 100
   s <- 5
-  x <- torch::torch_arange(1, 20)
+  x <- torch_arange(1, 20)
 
   f_start = 80
   f_end = 120

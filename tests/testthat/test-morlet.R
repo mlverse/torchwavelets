@@ -3,9 +3,9 @@ test_that("morlet wavelet", {
   omega <- 6 * pi
   s <- 6
   t_k <- 5
-  sample_time <- torch::torch_arange(3, 7, 0.01)
+  sample_time <- torch_arange(3, 7, 0.01)
   morlet <- morlet(omega, s, t_k, sample_time)
-  expect_equal(torch::torch_argmax(morlet$real), torch::torch_ceil(length(sample_time)/2))
+  expect_equal(torch_argmax(morlet$real), torch_ceil(length(sample_time)/2))
 
 })
 

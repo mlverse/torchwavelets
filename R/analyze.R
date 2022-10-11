@@ -1,6 +1,8 @@
 
 #' perform wavelet transform on a grid of analysis frequencies
 #'
+#' @importFrom torch torch_zeros
+#' @importFrom torch torch_cfloat
 #' @importFrom grDevices hcl.colors
 #' @importFrom graphics image
 #' @importFrom graphics mtext
@@ -18,9 +20,9 @@ wavelet_grid <- function(x, s, f_start, f_end, fs) {
   num_freqs <- 1 + log(f_end / f_start)/ log(1 + 1/(8 * s))
   freqs <- seq(f_start, f_end, length.out = floor(num_freqs))
 
-  transformed <- torch::torch_zeros(
+  transformed <- torch_zeros(
     num_freqs, dim(x)[1],
-    dtype = torch::torch_cfloat()
+    dtype = torch_cfloat()
   )
   for(i in 1:num_freqs) {
     w <- wavelet_transform_from_specs("morlet", x, freqs[i], s, fs)
@@ -31,6 +33,10 @@ wavelet_grid <- function(x, s, f_start, f_end, fs) {
 
 #' plot a wavelet diagram (scaleogram)
 #'
+#' @importFrom torch torch_square
+#' @importFrom torch torch_sqrt
+#' @importFrom torch torch_arange
+#' @importFrom torch nnf_interpolate
 #' @param x the signal
 #' @param freqs the analysis frequencies used
 #' @param grid the wavelet transform, a time-frequency grid
@@ -49,22 +55,22 @@ plot_wavelet_diagram <- function(x,
                                  type = "magnitude") {
   grid <- switch(type,
                  magnitude = grid$abs(),
-                 magnitude_squared = torch::torch_square(grid$abs()),
-                 magnitude_sqrt = torch::torch_sqrt(grid$abs())
+                 magnitude_squared = torch_square(grid$abs()),
+                 magnitude_sqrt = torch_sqrt(grid$abs())
   )
 
   # downsample time series
   # as per Vistnes, eq. 14.9
   new_x_take_every <- max(s / 24 * fs / f_end, 1)
   new_x_length <- floor(dim(grid)[2] / new_x_take_every)
-  new_x <- torch::torch_arange(
+  new_x <- torch_arange(
     x[1],
     x[dim(x)[1]],
     step = x[dim(x)[1]] / new_x_length
   )
 
   # interpolate grid
-  new_grid <- torch::nnf_interpolate(
+  new_grid <- nnf_interpolate(
     grid$view(c(1, 1, dim(grid)[1], dim(grid)[2])),
     c(dim(grid)[1], new_x_length)
   )$squeeze()
