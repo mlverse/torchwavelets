@@ -1,5 +1,10 @@
-README
-================
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# README
 
 *Note: This is the beginning of a package for doing wavelet analysis in
 R, based on `torch`. As of this writing, it comprises the code (slightly
@@ -8,9 +13,9 @@ Computing with R `torch`.*
 
 *Wavelet analysis is a vast domain. Contributors are more than welcome!*
 
-## A real-world example: Chaffinch’s song
+## A real-world example: Chaffinch's song
 
-This example is discussed in Arnt Vistnes’ fabulous book, *Physics of
+This example is discussed in Arnt Vistnes' fabulous book, *Physics of
 Oscillations and Waves*. We download the audio file from his website:
 
 ``` r
@@ -44,7 +49,7 @@ wav
         PCM (integer format):   TRUE
         Bit (8/16/24/32/64):    16 
 
-For analysis, we don’t need the complete sequence. Helpfully, Vistnes
+For analysis, we don't need the complete sequence. Helpfully, Vistnes
 also published a recommendation as to which range of samples to analyze.
 
 ``` r
@@ -77,10 +82,15 @@ ggplot(df, aes(x = x, y = y)) +
 ```
 
 <figure>
-<img src="vignettes/resources/wav-chaffinch.png" id="fig-wav-chaffinch"
-data-fig-alt="A sequence of several bursts, varying in height and thickness."
-alt="Chaffinch’s song." />
-<figcaption aria-hidden="true">Chaffinch’s song.</figcaption>
+
+<img src="vignettes/resources/wav-chaffinch.png" alt="Chaffinch’s song." id="fig-wav-chaffinch" data-fig-alt="A sequence of several bursts, varying in height and thickness."/>
+
+<figcaption aria-hidden="true">
+
+Chaffinch's song.
+
+</figcaption>
+
 </figure>
 
 Now, we need to determine a reasonable range of analysis frequencies. To
@@ -112,21 +122,24 @@ ggplot(df, aes(x = x, y = y)) +
 ```
 
 <figure>
-<img src="vignettes/resources/wav-chaffinch-fft.png"
-id="fig-wav-chaffinch-fft"
-data-fig-alt="A sequence of spikes, skewed to the left."
-alt="Chaffinch’s song, Fourier spectrum (excerpt)." />
-<figcaption aria-hidden="true">Chaffinch’s song, Fourier spectrum
-(excerpt).</figcaption>
+
+<img src="vignettes/resources/wav-chaffinch-fft.png" alt="Chaffinch’s song, Fourier spectrum (excerpt)." id="fig-wav-chaffinch-fft" data-fig-alt="A sequence of spikes, skewed to the left."/>
+
+<figcaption aria-hidden="true">
+
+Chaffinch's song, Fourier spectrum (excerpt).
+
+</figcaption>
+
 </figure>
 
 Based on this distribution, we can safely restrict the range of analysis
 frequencies to between, approximately, 1800 and 8500 Hertz. (This is
 also the range recommended by Vistnes.)
 
-First, though, let’s anchor expectations by creating a spectrogram for
+First, though, let's anchor expectations by creating a spectrogram for
 this signal. Suitable values for FFT size and window size were found
-experimentally. And though, in spectrograms, you don’t see this done
+experimentally. And though, in spectrograms, you don't see this done
 often, I found that displaying square roots of coefficient magnitudes
 yielded the most informative output.
 
@@ -173,15 +186,18 @@ mtext(side = 3, line = 1, at = 0, adj = 0, cex = 1, sub)
 ```
 
 <figure>
-<img src="vignettes/resources/wav-chaffinch-spectrogram.png"
-id="fig-wav-chaffinch-spectrogram"
-data-fig-alt="A two-dimensional heat map, indicating high values, strongly varying in time, around log frequency 3.5 Hz."
-alt="Chaffinch’s song, spectrogram." />
-<figcaption aria-hidden="true">Chaffinch’s song,
-spectrogram.</figcaption>
+
+<img src="vignettes/resources/wav-chaffinch-spectrogram.png" alt="Chaffinch’s song, spectrogram." id="fig-wav-chaffinch-spectrogram" data-fig-alt="A two-dimensional heat map, indicating high values, strongly varying in time, around log frequency 3.5 Hz."/>
+
+<figcaption aria-hidden="true">
+
+Chaffinch's song, spectrogram.
+
+</figcaption>
+
 </figure>
 
-The spectrogram already shows a distinctive pattern. Let’s see what can
+The spectrogram already shows a distinctive pattern. Let's see what can
 be done with wavelet analysis. Like Vistnes, we use the *Morlet*
 wavelet. Having experimented with a few different scales, I agree with
 Vistnes that `s = 48` makes for an excellent choice:
@@ -202,12 +218,15 @@ plot_wavelet_diagram(
 ```
 
 <figure>
-<img src="vignettes/resources/wav-chaffinch-waveletdiag.png"
-id="fig-wav-chaffinch-waveletdiag"
-data-fig-alt="A two-dimensional heat map, of high resolution, that strongly emphasizes how patterns vary in time."
-alt="Chaffinch’s song, wavelet diagram." />
-<figcaption aria-hidden="true">Chaffinch’s song, wavelet
-diagram.</figcaption>
+
+<img src="vignettes/resources/wav-chaffinch-waveletdiag.png" alt="Chaffinch’s song, wavelet diagram." id="fig-wav-chaffinch-waveletdiag" data-fig-alt="A two-dimensional heat map, of high resolution, that strongly emphasizes how patterns vary in time."/>
+
+<figcaption aria-hidden="true">
+
+Chaffinch's song, wavelet diagram.
+
+</figcaption>
+
 </figure>
 
 The gain in resolution, on both the time and the frequency axis, is
