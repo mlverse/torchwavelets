@@ -105,7 +105,7 @@ DerivativeOfGaussian <- R6::R6Class(
   "Derivative of Gaussian",
   lock_objects = FALSE,
   public = list(
-    initialize = function(m) {
+    initialize = function(m = 2) {
       if (m == 2) {
         # value of C_d from TC98
         self$C_d <- 3.541
@@ -117,11 +117,11 @@ DerivativeOfGaussian <- R6::R6Class(
     #' @description Value of the wavelet at the given time
     #' @param t Time. If s is not specified, this can be used as the non-dimensional time t/s.
     #' @param s Scaling factor. Default is 1.
-    time = function(t, s) {
+    time = function(t, s = 1) {
       x <- t / s
       m <- self$m
       # compute the Hermite polynomial (used to evaluate the derivative of a Gaussian)
-      h <- calculus::hermite(m)[[m]]$f
+      h <- calculus::hermite(m)[[m + 1]]$f
       eval(parse(text = paste('He_n <- function(x) {', h, '}', sep = '')))
       output <- He_n(x) * torch_exp(-x^2 / 2)
       const <- (-1)^(m + 1) / gamma(m + 0.5)^.5
@@ -131,7 +131,7 @@ DerivativeOfGaussian <- R6::R6Class(
     #' @description Equivalent Fourier period of wavelet
     #' @param s Scaling factor
     fourier_period = function(s) {
-      2 * np.pi * s / (self$m + 0.5) ** .5
+      2 * pi * s / (self$m + 0.5)^.5
     },
     #' @description Compute the scale from the fourier period
     #' @param period Fourier period
@@ -235,10 +235,11 @@ Paul <- R6::R6Class(
 #' @export
 MexicanHat <- R6::R6Class(
   "Mexican Hat",
-  inherit = "DerivativeOfGaussian",
+  inherit = DerivativeOfGaussian,
+  lock_objects = FALSE,
   public = list(
-    initialize = function(m) {
-      super()$initialize(m)
+    initialize = function() {
+      super$initialize(2)
       self$C_d = 3.541
     }
   )

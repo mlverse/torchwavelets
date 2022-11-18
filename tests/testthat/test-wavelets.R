@@ -58,3 +58,45 @@ test_that("Paul", {
   expect_equal(x, y)
 
 })
+
+test_that("Derivative of Gaussian", {
+  batch <- torch_arange(0, 7)
+
+  d <- DerivativeOfGaussian$new()
+  expect_equal(d$m, 2)
+
+  x <- d$time(batch)
+  y <- torch::torch_tensor(c(8.67325071e-01, -0.00000000e+00, -3.52139052e-01, -7.70808897e-02, -4.36432721e-03, -7.75732734e-05, -4.62327014e-07, -9.53253330e-10))
+  expect_true(torch::torch_allclose(x, y))
+
+  x <- d$fourier_period(s = 1)
+  y <- 3.97383530631844
+  expect_equal(x, y)
+
+  expect_error(p$scale_from_period(m$fourier_period(s = 1)))
+
+  x <- d$frequency(w = pi)
+  y <- 0.06156363866852903
+  expect_equal(x, y, tolerance = 1e-7)
+
+  x <- d$coi(s = 1)
+  y <- 1.4142135623730951
+  expect_equal(x, y)
+
+})
+
+test_that("Mexican Hat", {
+  batch <- torch_arange(0, 7)
+
+  m <- MexicanHat$new()
+  expect_equal(m$m, 2)
+
+  d <- DerivativeOfGaussian$new()
+
+  x1 <- m$time(batch)
+  x2 <- d$time(batch)
+  expect_true(torch::torch_allclose(x1, x2))
+
+})
+
+
