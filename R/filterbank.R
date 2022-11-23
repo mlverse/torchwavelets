@@ -3,10 +3,16 @@
 #'
 #' @details When cuda=True, the convolutions are performed on the GPU. If initialized with filters=None,
 #' the set_filters() method has to be called before actual running the convolutions.
+#'
+#' @importFrom torch nn_module
+#' @importFrom torch torch_stack
+#' @importFrom torch torch_is_complex
+#'
+#'
 #' @param filters list, collection of variable sized 1D filters (default: `NULL`)
 #' @param cuda logical, whether to run on GPU or not (default: FALSE)
 
-filterBank <- nn_module(
+filterBank <- torch::nn_module(
 
   initialize = function(filters = NULL, cuda = FALSE) {
     self$filters <- ifelse (is_null(filters), list(), self$set_filters(filters))
@@ -52,7 +58,8 @@ filterBank <- nn_module(
       self$filters[i] <- conv
     }
   },
-  get_padding <- function(padding_type) {
+  get_padding = function(padding_type) {
     ifelse(padding_type == "same", floor((kernel_size - 1) / 2), 0)
   }
 )
+

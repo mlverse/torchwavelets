@@ -1,27 +1,39 @@
-test_that("wavelet transform in Fourier domain", {
+test_that("simple transform", { # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/examples/simple_example.py
 
-  fs <- 8000
-  f1 <- 100
-  s <- 5
-  omega <- 2 * pi * f1
-  bin <- f1/fs * 20
-  m <- morlet_fourier(s, bin, 1:20)
+  dt <- 0.1               # sampling frequency
+  dj <- 0.125             # scale distribution parameter
+  batch_size <- 32
 
-  x <- torch_arange(1, 20)
+  t <- torch::torch_linspace(0, 10, floor(10/dt))
+  frequencies <- torch::torch_tensor(runif(batch_size, -0.5, 2.0))
+  batch <- torch::torch_zeros(batch_size, length(t))
+  for (f in 1:length(frequencies)) {
+    batch[f, ] <- torch::torch_sin(2 * pi * frequencies[f] * t)
+  }
 
-  expect_equal(dim(wavelet_transform_fourier(x, m)), 20)
+  wavelet <- Morlet$new()
+  wtf <- WaveletTransform$new(dt, dj, wavelet)
 
-})
+  # test methods called in the constructor
+  x <- wtf$compute_minimum_scale()
+  y <- 1
+  expect_equal(x, y)
 
-test_that("wavelet transform from specs", {
 
-  fs <- 8000
-  f1 <- 100
-  s <- 5
-  omega <- 2 * pi * f1
+  # test accessors
+  x <- wtf$dt
+  expect_equal(x, dt)
+  expect_error({
+    wtf$dj <- 1
+  })
+  expect_error({
+    wtf$wavelet <- MexicanHat$new()
+  })
 
-  x <- torch_arange(1, 20)
 
-  expect_equal(dim(wavelet_transform_from_specs("morlet", x, omega, s, fs)), 20)
+
+
+
+  expect_equal(x, dt)
 
 })

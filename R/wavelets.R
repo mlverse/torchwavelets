@@ -24,9 +24,10 @@
 #' @export
 Morlet <- R6::R6Class(
   "Morlet",
-  lock_objects = FALSE,
   public = list(
-    initialize = function(s = 1, complete = TRUE, w0 = 6) {
+    w0 = NULL,
+    C_d = NULL,
+    initialize = function(w0 = 6) {
       self$w0 <- w0
       if (w0 == 6) self$C_d <- 0.776   # value of C_d from TC98
     },
@@ -103,8 +104,9 @@ Morlet <- R6::R6Class(
 #' @export
 DerivativeOfGaussian <- R6::R6Class(
   "Derivative of Gaussian",
-  lock_objects = FALSE,
   public = list(
+    m = NULL,
+    C_d = NULL,
     initialize = function(m = 2) {
       if (m == 2) {
         # value of C_d from TC98
@@ -172,8 +174,8 @@ DerivativeOfGaussian <- R6::R6Class(
 #' @export
 Paul <- R6::R6Class(
   "Paul",
-  lock_objects = FALSE,
   public = list(
+    m = NULL,
     initialize = function(m = 4) {
       self$m <- m
     },
@@ -236,7 +238,6 @@ Paul <- R6::R6Class(
 MexicanHat <- R6::R6Class(
   "Mexican Hat",
   inherit = DerivativeOfGaussian,
-  lock_objects = FALSE,
   public = list(
     initialize = function() {
       super$initialize(2)

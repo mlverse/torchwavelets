@@ -1,5 +1,3 @@
-library(torch)
-
 test_that("morlet", {
 
   batch <- torch_arange(0, 7)
