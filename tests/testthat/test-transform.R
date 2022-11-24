@@ -14,25 +14,28 @@ test_that("simple transform", { # https://github.com/QUVA-Lab/PyTorchWavelets/bl
   wavelet <- Morlet$new()
   wtf <- WaveletTransform$new(dt, dj, wavelet)
 
-  # test methods called in the constructor
-  x <- wtf$compute_minimum_scale()
-  y <- 1
-  expect_equal(x, y)
-
-
   # test accessors
+  x <- wtf$compute_minimum_scale
+  y <- 0.1936027
+  expect_equal(x, y, tolerance = 1e-7)
+
   x <- wtf$dt
   expect_equal(x, dt)
+
   expect_error({
     wtf$dj <- 1
   })
+
   expect_error({
     wtf$wavelet <- MexicanHat$new()
   })
 
+  x <- wtf$scale_from_period(wtf$fourier_period(s = 1))
+  y <- wavelet$scale_from_period(wavelet$fourier_period(s = 1))
+  expect_equal(x, y)
 
 
-
+  x <- wtf$compute_optimal_scales()
 
   expect_equal(x, dt)
 

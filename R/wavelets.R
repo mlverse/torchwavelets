@@ -34,7 +34,7 @@ Morlet <- R6::R6Class(
     #' @description Value of the wavelet at the given time
     #' @param t Time. If s is not specified, this can be used as the non-dimensional time t/s.
     #' @param s Scaling factor. Default is 1.
-    #' @param complete Whether to use the complete or the standard version.
+    #' @param complete Whether to use the compxlete or the standard version.
     time = function(t, s = 1, complete = TRUE) {
       w <- self$w0
       x <- t / s

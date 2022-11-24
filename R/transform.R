@@ -24,7 +24,7 @@ WaveletTransform <- R6::R6Class(
       private$.dj <- dj
       private$.wavelet <- wavelet
 
-      private$.scale_minimum <- self$compute_minimum_scale()
+      private$.scale_minimum <- self$compute_minimum_scale
       #private$.extractor <- filterBank(self$filters, cuda)
       # tbd add back!!!!!
     },
@@ -102,21 +102,10 @@ WaveletTransform <- R6::R6Class(
     #' @description Determines the optimal scale distribution (see. Torrence & Combo, Eq. 9-10).
     #' @return np.ndarray, collection of scales
     compute_optimal_scales = function() {
-      if (is_null(self$signal_length)) stop("Please specify signal_length before computing optimal scales.")
-      J <- ceiling((1 / self$dj) * log2(self$signal_length * self$dt / self$scale_minimum))
-      scales <- self$scale_minimum * 2^(self$dj * torch_arange(0, J + 1))
+      if (is_null(private$.signal_length)) stop("Please specify signal_length before computing optimal scales.")
+      J <- ceiling((1 / private$.dj) * log2(private$.signal_length * private$.dt / private$.scale_minimum))
+      scales <- private$.scale_minimum * 2^(private$.dj * torch_arange(0, J + 1))
       scales
-    },
-    #' Choose s0 so that the equivalent Fourier period is 2 * dt.
-    #' See Torrence & Combo Sections 3f and 3h.
-    #' @return float, minimum scale level
-    compute_minimum_scale = function() {
-      dt <- private$.dt
-      self$fourier_period
-      # func_to_solve <- function(s) {
-      #   self$fourier_period(s) - 2 * dt
-      # }
-      # uniroot(func_to_solve, c(0,10))$root
     },
     #' @description Performs CWT and converts to a power spectrum (scalogram).
     #' See Torrence & Combo, Section 4d.
@@ -124,26 +113,20 @@ WaveletTransform <- R6::R6Class(
     #' @return a `torch_tensor()`, scalogram for each signal [n_batch,n_scales,signal_length]
     power = function() {
       ifelse(isTRUE(self$unbias), (torch_abs(self$cwt(x))$T^2 / self$scales)$T, torch_abs(self$cwt(x))^2)
-    },
-    fourier_period = function() {
-      private$.wavelet$fourier_period(value)
-    },
-    scale_from_period = function() {
-        private$.wavelet$scale_from_period
-    },
-    fourier_periods = function() {
-        stopifnot(!is_null(private$.scales), 'Wavelet scales are not initialized.')
-        self$.fourier_period(private$.scales)
-    },
-    fourier_frequencies = function() {
-      torch_reciprocal(self$fourier_periods)
-    },
-    complex_wavelet = function() {
-      torch_is_complex(private$.filters[0])
-    },
-    output_dtype = function() {
-      if (self$complex_wavelet(private$.wavelet)) torch_cfloat else torch_get_default_dtype()
-    }
+    }#,
+    # fourier_periods = function() {
+    #     stopifnot(!is_null(private$.scales), 'Wavelet scales are not initialized.')
+    #     self$.fourier_period(private$.scales)
+    # },
+    # fourier_frequencies = function() {
+    #   torch_reciprocal(self$fourier_periods)
+    # },
+    # complex_wavelet = function() {
+    #   torch_is_complex(private$.filters[0])
+    # },
+    # output_dtype = function() {
+    #   if (self$complex_wavelet(private$.wavelet)) torch_cfloat else torch_get_default_dtype()
+    # }
   ),
   private = list(
     .dt = NA,
@@ -175,6 +158,35 @@ WaveletTransform <- R6::R6Class(
     wavelet = function(value) {
       if (missing(value)) {
         private$.wavelet
+      } else {
+        stop("Can't change wavelet.")
+      }
+    },
+    #' @description Choose s0 so that the equivalent Fourier period is 2 * dt.
+    #' See Torrence & Combo Sections 3f and 3h.
+    #' @return float, minimum scale level
+    compute_minimum_scale = function(value) {
+      if (missing(value)) {
+        dt <- private$.dt
+        f <- self$fourier_period
+        func_to_solve <- function(s) {
+          f(s) - 2 * dt
+        }
+        uniroot(func_to_solve, c(0,10))$root
+      } else {
+        stop("Can't change minimum scale.")
+      }
+    },
+    fourier_period = function(value) {
+      if (missing(value)) {
+        private$.wavelet$fourier_period
+      } else {
+        stop("Can't change wavelet.")
+      }
+    },
+    scale_from_period = function(value) {
+      if (missing(value)) {
+        private$.wavelet$scale_from_period
       } else {
         stop("Can't change wavelet.")
       }
