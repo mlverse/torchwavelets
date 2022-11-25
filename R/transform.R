@@ -1,209 +1,188 @@
-#' Wavelet transform
+
+#' Temporal filter bank in PyTorch storing a collection of nn.Conv1d filters.
 #'
-#' @details
-#' Continuous Wavelet Transform as described in
-#' Torrence & Combo, A Practical Guide to Wavelet Analysis (BAMS, 1998)
+#' @details When cuda=True, the convolutions are performed on the GPU. If initialized with filters=None,
+#' the set_filters() method has to be called before actual running the convolutions.
 #'
-#' @param dt float, sample spacing
-#' @param dj float, scale distribution parameter
+#' @importFrom torch nn_module
+#' @importFrom torch torch_stack
+#' @importFrom torch torch_is_complex
+#' @importFrom torch nn_module
+#'
+#' @param signal_length length of the signal to be processed
+#' @param dt sample spacing, default is 1
+#' @param dj scale distribution parameter, default is 0.125
 #' @param wavelet wavelet object
-#' @param unbias logical, whether to unbias the power spectrum
-#' @cuda logical whether to run on cuda
-#'
-#' @export
-WaveletTransform <- R6::R6Class(
-  "WaveletTransform",
-  public = list(
-    unbias = NULL,
-    cuda = NULL,
-    initialize = function(dt = 1, dj = 0.125, wavelet = Morlet$new(), unbias = FALSE, cuda = FALSE) {
-      self$unbias <- unbias
-      self$cuda <- cuda
+#' @param unbias whether to unbias the power spectrum
 
-      private$.dt <- dt
-      private$.dj <- dj
-      private$.wavelet <- wavelet
+wavelet_transform <- nn_module(
 
-      private$.scale_minimum <- self$compute_minimum_scale
-      #private$.extractor <- filterBank(self$filters, cuda)
-      # tbd add back!!!!!
-    },
-    #' @description Implements the continuous wavelet transform on a batch of signals.
-    #' All signals in the batch must have the same length, otherwise manual zero
-    #' padding has to be applied. On the first call, the signal length is used to
-    #' determines the optimal scale distribution and uses this for initialization
-    #' of the wavelet filter bank. If there is only one example in the batch the
-    #' batch dimension is squeezed.
-    #' @param x `torch_tensor()`, batch of signals of shape `[n_batch,signal_length]`
-    #' @return `torch_tensor()`, CWT for each signal in the batch `[n_batch,n_scales,signal_length]`
-    cwt = function(x) {
-      if (x$ndim == 1) {
-        # Append batch_size and chn_in dimensions
-        # [signal_length] => [n_batch,1,signal_length]
-        x <- x$unsqueeze(1)$unsqueeze()
-      } else if (x$ndim == 2) {
-        # Just append chn_in dimension
-        # [n_batch,signal_length] => [n_batch,1,signal_length]
-        x <- x$view(dim(x)[1], 1, dim(x)[2])
-      }
-      num_examples <- x$shape[1]
-      signal_length <- x$shape[-1]
+  initialize = function(signal_length, dt = 1, dj = 0.125, wavelet = Morlet$new(), unbias = FALSE) {
+    self$signal_length <- signal_length
+    self$dt <- dt
+    self$dj <- dj
+    self$wavelet <- wavelet
+    self$unbias <- unbias
+    self$scale_minimum <- self$compute_minimum_scale()
+    self$scales <- self$compute_optimal_scales()
+    self$filters <- self$build_filters()
+    self$filter_bank <- NULL
+  },
+  forward = function(x) {
+    #####
+    # build filters from signal length
+    # calc cwt
 
-      if (signal_length != self.signal_length || is_null(self.$filters)) {
-        # First call initializtion, or change in signal length. Note that calling
-        # this also determines the optimal scales and initialized the filter bank.
-        self$signal_length <- signal_length
-      }
-      # Move to GPU and perform CWT computation
-      x$requires_grad_(requires_grad = FALSE)
-      if (is_true(self$cuda)) x <- x$cuda()
-      cwt <- self$extractor(x)
-
-      # Move back to CPU
-      cwt <- cwt$detach()
-      if (is_true(self$cuda)) cwt <- cwt$cpu()
-
-      #  ### is this still necessary????????????????
-      # if (is_true(self$complex_wavelet)) {
-      # Combine real and imag parts, returns object of shape
-      # [n_batch,n_scales,signal_length] of `type np.complex128`torch_complex()`
-      # cwt <- cwt[:,:,0,:] + cwt[:,:,1,:] * torch_complex(0, 1)
-      # } else {
-      # Just squeeze the chn_out dimension (=1) to obtain an object of shape
-      # [n_batch,n_scales,signal_length] of type np.float64
-      #  cwt = np.squeeze(cwt, 2).astype(self.output_dtype)
-      # }
-      # Squeeze batch dimension if single example
-      if (num_examples == 1) {
-        cwt <- cwt.squeeze(0)
-      }
-      cwt
-    },
-    #' @description Determines the optimal scale distribution (see. Torrence & Combo, Eq. 9-10),
-    #' and then initializes the filter bank consisting of rescaled versions
-    #' of the mother wavelet. Also includes normalization.
-    build_filters = function() {
-      self$scale_minimum <- self$compute_minimum_scale()
-      self$scales <- self$compute_optimal_scales()
-      self$filters <- list()
-      for (i in length(self$scales)) {
-        # Number of points needed to capture wavelet
-        M <- 10 * scale / self$dt
-        # Times to use, centred at zero
-        t <- torch_arange((-M + 1) / 2, (M + 1) / 2) * self$dt
-        if (length(t) %% 2 == 0) {
-          t <- t[0:-1] # requires odd filter size
-        }
-        # Sample wavelet and normalise
-        norm <- (self$dt / scale)^.5
-        self$filters[scale_idx] <- norm * self$wavelet(t, scale)
-      }
-    },
-    #' @description Determines the optimal scale distribution (see. Torrence & Combo, Eq. 9-10).
-    #' @return np.ndarray, collection of scales
-    compute_optimal_scales = function() {
-      if (is_null(private$.signal_length)) stop("Please specify signal_length before computing optimal scales.")
-      J <- ceiling((1 / private$.dj) * log2(private$.signal_length * private$.dt / private$.scale_minimum))
-      scales <- private$.scale_minimum * 2^(private$.dj * torch_arange(0, J + 1))
-      scales
-    },
-    #' @description Performs CWT and converts to a power spectrum (scalogram).
-    #' See Torrence & Combo, Section 4d.
-    #' @param x `torch_tensor()`, batch of input signals of shape [n_batch,signal_length]
-    #' @return a `torch_tensor()`, scalogram for each signal [n_batch,n_scales,signal_length]
-    power = function() {
-      ifelse(isTRUE(self$unbias), (torch_abs(self$cwt(x))$T^2 / self$scales)$T, torch_abs(self$cwt(x))^2)
-    }#,
-    # fourier_periods = function() {
-    #     stopifnot(!is_null(private$.scales), 'Wavelet scales are not initialized.')
-    #     self$.fourier_period(private$.scales)
-    # },
-    # fourier_frequencies = function() {
-    #   torch_reciprocal(self$fourier_periods)
-    # },
-    # complex_wavelet = function() {
-    #   torch_is_complex(private$.filters[0])
-    # },
-    # output_dtype = function() {
-    #   if (self$complex_wavelet(private$.wavelet)) torch_cfloat else torch_get_default_dtype()
-    # }
-  ),
-  private = list(
-    .dt = NA,
-    .dj = NA,
-    .wavelet = NULL,
-    .scale_minimum = NA,
-    .signal_length = NA,
-    .scales = NA,
-    .filters = NULL,
-    .extractor = NULL
-  ),
-  active = list(
-    dt = function(value) {
-      if (missing(value)) {
-        private$.dt
-      } else {
-        private$.dt <- value
-        self$.extractor$set_filters(self$.filters)
-      }
-    },
-    signal_length = function(value) {
-      if (missing(value)) {
-        private$.signal_length
-      } else {
-        private$.signal_length <- value
-        #self$.extractor$set_filters(self$.filters) fix!!!!!!!!!!!!!
-      }
-    },
-    wavelet = function(value) {
-      if (missing(value)) {
-        private$.wavelet
-      } else {
-        stop("Can't change wavelet.")
-      }
-    },
-    #' @description Choose s0 so that the equivalent Fourier period is 2 * dt.
-    #' See Torrence & Combo Sections 3f and 3h.
-    #' @return float, minimum scale level
-    compute_minimum_scale = function(value) {
-      if (missing(value)) {
-        dt <- private$.dt
-        f <- self$fourier_period
-        func_to_solve <- function(s) {
-          f(s) - 2 * dt
-        }
-        uniroot(func_to_solve, c(0,10))$root
-      } else {
-        stop("Can't change minimum scale.")
-      }
-    },
-    fourier_period = function(value) {
-      if (missing(value)) {
-        private$.wavelet$fourier_period
-      } else {
-        stop("Can't change wavelet.")
-      }
-    },
-    scale_from_period = function(value) {
-      if (missing(value)) {
-        private$.wavelet$scale_from_period
-      } else {
-        stop("Can't change wavelet.")
-      }
-    },
-    dj = function(value) {
-      if (missing(value)) {
-        private$.dj
-      } else {
-        stop("Can't change dj.")
-      }
-    },
-    scales = function(value) {
-      if (missing(value)) {
-        private$.scales
-      } else {
-        stop("Can't change scales.")
-      }
+    #' @description Takes a batch of signals and convolves each signal with all elements
+    #' in the filter bank. After convolving the entire filter bank, the method returns
+    #' a tensor of shape `[N,N_scales,1/2,T]` where the 1/2 number of channels depends
+    #' on whether the filter bank is composed of real or complex filters. If the filters
+    #' are complex the 2 channels represent `[real, imag]` parts.
+    #' @param x torch.Variable, batch of input signals of shape `[N,1,T]`
+    #' @return torch.Variable, batch of outputs of size `[N,N_scales,1/2,T]`
+    if (is_null(self$filters)) stop('torch filters not initialized. Please call set_filters() first.')
+    results <- list()
+    for (i in length(self$filters)) {
+      results[i] <- self$filters[i](x)
     }
-  )
+    results <- torch_stack(results)        # [n_scales,n_batch,2,t]
+    results <- results$permute(c(1,0,2,3)) # [n_batch,n_scales,2,t]
+    results
+  },
+  #' @description Given a list of temporal 1D filters of variable size, this method
+  #' creates a list of `nn_conv1d()` objects that collectively form the filter bank.
+  #' @param filters list, collection of filters each a `torch_tensor`
+  #' @param padding_type character, should be `"same"` or `"valid"`
+  set_filters = function(filters) {
+    for (i in length(filters)) {
+      if (any(unlist(Map(torch_is_complex, ll)))) {
+        chn_out <- 2
+        filt_weights <- torch_tensor(list(self$filters[i]$real, self$filters[i]$imag))
+      } else {
+        chn_out <- 1
+        filt_weights <- self$filters[i]$unsqueeze(1)# filt.astype(np.float32)[None,:]
+      }
+      filt_weights <- filt_weights$unsqueeze(3)# np.expand_dims(filt_weights, 1)  # append chn_in dimension
+      filt_size <- filt_weights$ndim              # filter length
+      padding <- self$get_padding(padding_type, filt_size)
+      conv <- nn_conv1d(1, chn_out, kernel_size = filt_size, padding = padding, bias = FALSE)
+      conv$weight$data <- filt_weights
+      conv$weight$requires_grad_(FALSE)
+      if (isTRUE(self$cuda)) conv$cuda()
+      self$filters[i] <- conv
+    }
+  },
+  cwt = function(x) {
+    if (x$ndim == 1) {
+      # Append batch_size and chn_in dimensions
+      # [signal_length] => [n_batch,1,signal_length]
+      x <- x$unsqueeze(1)$unsqueeze()
+    } else if (x$ndim == 2) {
+      # Just append chn_in dimension
+      # [n_batch,signal_length] => [n_batch,1,signal_length]
+      x <- x$view(dim(x)[1], 1, dim(x)[2])
+    }
+    num_examples <- x$shape[1]
+    signal_length <- x$shape[-1]
+
+    if (signal_length != self.signal_length || is_null(self.$filters)) {
+      # First call initializtion, or change in signal length. Note that calling
+      # this also determines the optimal scales and initialized the filter bank.
+      self$signal_length <- signal_length
+    }
+    # Move to GPU and perform CWT computation
+    x$requires_grad_(requires_grad = FALSE)
+    if (is_true(self$cuda)) x <- x$cuda()
+    cwt <- self$extractor(x)
+
+    # Move back to CPU
+    cwt <- cwt$detach()
+    if (is_true(self$cuda)) cwt <- cwt$cpu()
+
+    #  ### is this still necessary????????????????
+    # if (is_true(self$complex_wavelet)) {
+    # Combine real and imag parts, returns object of shape
+    # [n_batch,n_scales,signal_length] of `type np.complex128`torch_complex()`
+    # cwt <- cwt[:,:,0,:] + cwt[:,:,1,:] * torch_complex(0, 1)
+    # } else {
+    # Just squeeze the chn_out dimension (=1) to obtain an object of shape
+    # [n_batch,n_scales,signal_length] of type np.float64
+    #  cwt = np.squeeze(cwt, 2).astype(self.output_dtype)
+    # }
+    # Squeeze batch dimension if single example
+    if (num_examples == 1) {
+      cwt <- cwt.squeeze(0)
+    }
+    cwt
+  },
+  # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10), and then initializes
+  # the filter bank consisting of rescaled versions of the mother wavelet. Also includes normalization.
+  build_filters = function() {
+    filters <- list()
+    for (i in 1:length(self$scales)) {
+      # Number of points needed to capture wavelet
+      M <- 10 * self$scales[i] / self$dt
+      # Times to use, centered at zero
+      t <- torch_arange((-M + 1) / 2, (M + 1) / 2 - 1) * self$dt
+      if (length(t) %% 2 == 0) {
+        t <- t[1:-2] # requires odd filter size
+      }
+      # Sample wavelet and normalize
+      norm <- (self$dt / self$scales[i])^.5
+      #filters[i] <- norm * self$wavelet$time(t, self$scales[i])
+      filters[[i]] <- norm * self$wavelet$time(t, s = self$scales[i])
+    }
+    filters
+  },
+  # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10).
+  compute_optimal_scales = function() {
+    J <- floor((1 / self$dj) * log2(self$signal_length * self$dt / self$scale_minimum))
+    scales <- self$scale_minimum * 2^(self$dj * torch_arange(0, J))
+    scales
+  },
+  # Performs CWT and converts to a power spectrum (scalogram). See Torrence & Combo, Section 4d.
+  #' @param x `torch_tensor()`, batch of input signals of shape [n_batch,signal_length]
+  #' @return a `torch_tensor()`, scalogram for each signal [n_batch,n_scales,signal_length]
+  power = function() {
+    ifelse(isTRUE(self$unbias), (torch_abs(self$cwt(x))$T^2 / self$scales)$T, torch_abs(self$cwt(x))^2)
+  },
+  get_padding = function(padding_type) {
+    ifelse(padding_type == "same", floor((kernel_size - 1) / 2), 0)
+  },
+  # Choose s0 so that the equivalent Fourier period is 2 * dt. See Torrence & Combo Sections 3f and 3h.
+  compute_minimum_scale = function() {
+    dt <- self$dt
+    f <- self$wavelet$fourier_period
+    func_to_solve <- function(s) {
+      f(s) - 2 * dt
+    }
+    uniroot(func_to_solve, c(0,10))$root
+  },
+  fourier_period = function(s) {
+    self$wavelet$fourier_period(s)
+  },
+  scale_from_period = function(p) {
+    self$wavelet$scale_from_period(p)
+  },
+  fourier_periods = function() {
+    self$fourier_period(self$scales)
+  },
+  fourier_frequencies = function() {
+    torch_reciprocal(self$fourier_periods())
+  },
+  complex_wavelet = function(value) {
+    if (missing(value)) {
+      torch_is_complex(private$.filters[0])
+    } else {
+      stop("Can't change wavelet properties.")
+    }
+  },
+  output_dtype = function(value) {
+    if (missing(value)) {
+      if (self$complex_wavelet(private$.wavelet)) torch_cfloat else torch_get_default_dtype()
+    } else {
+      stop("Can't change wavelet properties.")
+    }
+  }
 )
+
