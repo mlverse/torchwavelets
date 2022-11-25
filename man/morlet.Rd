@@ -21,3 +21,6 @@ a vector of wavelet values (complex).
 \description{
 \deqn{\Psi_{\omega_{a},s,t_{k}}(t_n) = (e^{-i \omega_{a} (t_n - t_k)} - e^{-s^2}) \ e^{- \omega_a^2 (t_n - t_k )^2 /(2s )^2}}
 }
+\details{
+See Vistnes, Physics of Oscillations and Waves, eq. (14.8).
+}

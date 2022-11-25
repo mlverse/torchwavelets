@@ -51,12 +51,12 @@ Morlet <- R6::R6Class(
       4 * pi * s / (self$w0 + (2 + self$w0^2)^.5)
     },
     #' @description Compute the scale from the fourier period
-    #' @param period Fourier period
-    scale_from_period = function(period) {
+    #' @param p Fourier period
+    scale_from_period = function(p) {
       # Solve 4 * pi * scale / (w0 + (2 + w0 ** 2) ** .5)
       # for s to obtain this formula
       coeff <- sqrt(self$w0 * self$w0 + 2)
-      (period * (coeff + self$w0)) / (4 * pi)
+      (p * (coeff + self$w0)) / (4 * pi)
     },
     #' @description Frequency representation of Morlet
     #' @param w angular frequency. If s is not specified, i.e. set to 1,
@@ -65,7 +65,7 @@ Morlet <- R6::R6Class(
     frequency = function(w, s = 1) {
       x <- w * s
       # Heaviside mock
-      Hw <- ifelse(w <= 0, 0, 1)
+      Hw <- if (w <= 0) 0 else 1
       f <- pi^-.25 * Hw * torch_exp((-(x - self$w0)^2) / 2)
       as.numeric(f)
     },

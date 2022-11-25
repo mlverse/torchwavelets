@@ -14,5 +14,8 @@ morlet_fourier(s, omega_a, omega)
 \item{omega}{a vector of frequencies to be considered.  Must be the DFT bin, not a frequency in Hertz.}
 }
 \description{
-The Morlet wavelet, in Fourier domain
+\deqn{\hat{\Psi}_{\omega_{a},s}(\omega) = 2(e^{-(s (\omega - \omega_a)/\omega_a)^2}) - e^{-s^2} \ e^{- (s \omega/\omega_a)^2}}
+}
+\details{
+See Vistnes, Physics of Oscillations and Waves, eq. (14.12).
 }
