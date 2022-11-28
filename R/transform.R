@@ -30,28 +30,8 @@ wavelet_transform <- nn_module(
     self$scale_minimum <- self$compute_minimum_scale()
     self$scales <- self$compute_optimal_scales()
     self$filters <- self$build_filters()
+    self$is_complex_wavelet <- torch_is_complex(self$filters[[1]])
     self$convs <- self$filter_bank(self$filters)
-  },
-  forward = function(x) {
-    #####
-    # build filters from signal length
-    # calc cwt
-
-    #' @description Takes a batch of signals and convolves each signal with all elements
-    #' in the filter bank. After convolving the entire filter bank, the method returns
-    #' a tensor of shape `[N,N_scales,1/2,T]` where the 1/2 number of channels depends
-    #' on whether the filter bank is composed of real or complex filters. If the filters
-    #' are complex the 2 channels represent `[real, imag]` parts.
-    #' @param x torch.Variable, batch of input signals of shape `[N,1,T]`
-    #' @return torch.Variable, batch of outputs of size `[N,N_scales,1/2,T]`
-    if (is_null(self$filters)) stop('torch filters not initialized. Please call set_filters() first.')
-    results <- list()
-    for (i in length(self$filters)) {
-      results[i] <- self$filters[i](x)
-    }
-    results <- torch_stack(results)        # [n_scales,n_batch,2,t]
-    results <- results$permute(c(1,0,2,3)) # [n_batch,n_scales,2,t]
-    results
   },
   # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10), and then initializes
   # the filter bank consisting of rescaled versions of the mother wavelet. Also includes normalization.
@@ -75,10 +55,9 @@ wavelet_transform <- nn_module(
   #' creates a list of `nn_conv1d()` objects that collectively form the filter bank.
  filter_bank = function(filters, padding_type = "same") {
     filter_bank <- list()
-    is_complex <- torch_is_complex(filters[[1]])
-    chn_out <- if (is_complex) 2 else 1
+    chn_out <- if (self$is_complex_wavelet) 2 else 1
     for (i in 1:length(filters)) {
-      filt_weights <- if (is_complex) torch_cat(list(filters[[i]]$real$unsqueeze(1), filters[[i]]$imag$unsqueeze(1)), dim = 1) else filters[[i]]$unsqueeze(1)
+      filt_weights <- if (self$is_complex_wavelet) torch_cat(list(filters[[i]]$real$unsqueeze(1), filters[[i]]$imag$unsqueeze(1)), dim = 1) else filters[[i]]$unsqueeze(1)
       filt_weights <- filt_weights$unsqueeze(2) # append chn_in dimension
       filt_size <- dim(filt_weights)[3]            # filter length
       padding <- self$get_padding(padding_type, filt_size)
@@ -89,46 +68,48 @@ wavelet_transform <- nn_module(
     }
     filter_bank
   },
-  cwt = function(x) {
+ cwt = function(x) {
+   # Takes a batch of signals and convolves each signal with all elements
+   # in the filter bank. After convolving the entire filter bank, the method returns
+   # a tensor of shape `[N,N_scales,1/2,T]` where the 1/2 number of channels depends
+   # on whether the filter bank is composed of real or complex filters. If the filters
+   # are complex the 2 channels represent `[real, imag]` parts.
+
+   results <- list()
+   for (i in 1:length(self$convs)) {
+     results[[i]] <- self$convs[[i]](x)
+   }
+   results <- torch_stack(results)        # [n_scales,n_batch,2,t]
+   results <- results$permute(c(2,1,3,4)) # [n_batch,n_scales,2,t]
+   results
+ },
+  forward = function(x) {
     if (x$ndim == 1) {
       # Append batch_size and chn_in dimensions
       # [signal_length] => [n_batch,1,signal_length]
-      x <- x$unsqueeze(1)$unsqueeze()
+      x <- x$unsqueeze(1)$unsqueeze(1)
     } else if (x$ndim == 2) {
       # Just append chn_in dimension
       # [n_batch,signal_length] => [n_batch,1,signal_length]
-      x <- x$view(dim(x)[1], 1, dim(x)[2])
+      x <- x$view(c(dim(x)[1], 1, dim(x)[2]))
     }
     num_examples <- x$shape[1]
     signal_length <- x$shape[-1]
 
-    if (signal_length != self.signal_length || is_null(self.$filters)) {
-      # First call initializtion, or change in signal length. Note that calling
-      # this also determines the optimal scales and initialized the filter bank.
-      self$signal_length <- signal_length
-    }
-    # Move to GPU and perform CWT computation
-    x$requires_grad_(requires_grad = FALSE)
-    if (is_true(self$cuda)) x <- x$cuda()
-    cwt <- self$extractor(x)
+    cwt <- self$cwt(x)
 
-    # Move back to CPU
-    cwt <- cwt$detach()
-    if (is_true(self$cuda)) cwt <- cwt$cpu()
-
-    #  ### is this still necessary????????????????
-    # if (is_true(self$complex_wavelet)) {
+    if (self$is_complex_wavelet) {
     # Combine real and imag parts, returns object of shape
     # [n_batch,n_scales,signal_length] of `type np.complex128`torch_complex()`
-    # cwt <- cwt[:,:,0,:] + cwt[:,:,1,:] * torch_complex(0, 1)
-    # } else {
+      cwt <- cwt[ , , 1, ] * torch_complex(1, 0) + cwt[ , , 2, ] * torch_complex(0, 1)
+    } else {
     # Just squeeze the chn_out dimension (=1) to obtain an object of shape
     # [n_batch,n_scales,signal_length] of type np.float64
-    #  cwt = np.squeeze(cwt, 2).astype(self.output_dtype)
-    # }
+      cwt = cwt$squeeze(3)
+    }
     # Squeeze batch dimension if single example
     if (num_examples == 1) {
-      cwt <- cwt.squeeze(0)
+      cwt <- cwt$squeeze(1)
     }
     cwt
   },

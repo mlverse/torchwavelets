@@ -1,4 +1,6 @@
-test_that("basic functionality", { # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/examples/simple_example.py
+test_that("basic functionality", {
+  # expected values computed from
+  # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/examples/simple_example.py
 
   dt <- 0.1
   dj <- 0.125
@@ -96,7 +98,6 @@ test_that("basic functionality", { # https://github.com/QUVA-Lab/PyTorchWavelets
   expect_equal(x, y)
 
   ### test conv modules ###
-  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
   convs <- wtf$filter_bank(wtf$build_filters())
 
   x <- unlist(Map(function(c) c$kernel_size, convs))
@@ -119,9 +120,24 @@ test_that("basic functionality", { # https://github.com/QUVA-Lab/PyTorchWavelets
 
   x <- as.numeric(convs[[7]]$weight$std())
   y <- 0.1240
-  expect_equal(x, y, tolerance = 1e-5)
+  expect_equal(x, y, tolerance = 1e-4)
 
   ### test cwt ###
+  b <- batch$view(c(dim(batch)[1], 1, dim(batch)[2]))
+  x <- wtf$cwt(b)$shape
+  y <- c(32, 46, 2, 100)
+  expect_equal(x, y)
+
+  ### test forward ###
+  x <- c(as.numeric(wtf(batch)$real$mean()), as.numeric(wtf(batch)$real$min()), as.numeric(wtf(batch)$real$max()))
+  y <- c(-0.0026392932315294822, -4.567781448364258, 4.5740203857421875)
+  expect_equal(x, y, tolerance = 1e-1)
+  x <- c(as.numeric(wtf(batch)$imag$mean()), as.numeric(wtf(batch)$imag$min()), as.numeric(wtf(batch)$imag$max()))
+  y <- c(-0.008708901385664894, -4.636211395263672, 4.621674537658691)
+  expect_equal(x, y, tolerance = 1e-1)
+  x <- c(as.numeric(wtf(batch)$abs()$mean()), as.numeric(wtf(batch)$abs()$min()), as.numeric(wtf(batch)$abs()$max()))
+  y <- c(0.3943239924987704, 7.787456582134456e-09, 4.649060297586245)
+  expect_equal(x, y, tolerance = 1e-1)
 
   }
 )
