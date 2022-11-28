@@ -95,7 +95,33 @@ test_that("basic functionality", { # https://github.com/QUVA-Lab/PyTorchWavelets
   y <- c(19, 21, 23, 25, 27, 29, 33, 35, 39, 43, 47, 51, 55, 59, 65, 71, 77, 85, 93, 101, 109, 119, 131, 143, 155, 169, 185, 201, 219, 239, 261, 285, 309, 337, 369, 401, 439, 477, 521, 569, 619, 675, 737, 803, 877, 955)
   expect_equal(x, y)
 
+  ### test conv modules ###
+  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
+  convs <- wtf$filter_bank(wtf$build_filters())
 
-  wtf$set_filters(x)
+  x <- unlist(Map(function(c) c$kernel_size, convs))
+  y <- c(19,  21,  23,  25,  27,  29,  33,  35,  39,  43,  47,  51,  55,
+         59,  65,  71,  77,  85,  93, 101, 109, 119, 131, 143, 155, 169,
+         185, 201, 219, 239, 261, 285, 309, 337, 369, 401, 439, 477, 521,
+         569, 619, 675, 737, 803, 877, 955)
+  expect_equal(x, y)
+
+  x <- unlist(Map(function(c) c$padding, convs))
+  y <- c(9,  10,  11,  12,  13,  14,  16,  17,  19,  21,  23,  25,  27,
+         29,  32,  35,  38,  42,  46,  50,  54,  59,  65,  71,  77,  84,
+         92, 100, 109, 119, 130, 142, 154, 168, 184, 200, 219, 238, 260,
+         284, 309, 337, 368, 401, 438, 477)
+  expect_equal(x, y)
+
+  x <- as.numeric(convs[[46]]$weight$sum())
+  y <- -5.8038e-06
+  expect_equal(x, y, tolerance = 1e-6)
+
+  x <- as.numeric(convs[[7]]$weight$std())
+  y <- 0.1240
+  expect_equal(x, y, tolerance = 1e-5)
+
+  ### test cwt ###
+
   }
 )

@@ -10,6 +10,8 @@
 #' @importFrom torch nn_module
 #' @importFrom torch torch_tensor
 #' @importFrom torch torch_cat
+#' @importFrom torch torch_reciprocal
+#' @importFrom torch nn_conv1d
 #'
 #' @param signal_length length of the signal to be processed
 #' @param dt sample spacing, default is 1
@@ -51,6 +53,24 @@ wavelet_transform <- nn_module(
     results <- results$permute(c(1,0,2,3)) # [n_batch,n_scales,2,t]
     results
   },
+  # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10), and then initializes
+  # the filter bank consisting of rescaled versions of the mother wavelet. Also includes normalization.
+  build_filters = function() {
+    filters <- list()
+    for (i in 1:length(self$scales)) {
+      # Number of points needed to capture wavelet
+      M <- 10 * self$scales[i] / self$dt
+      # Times to use, centered at zero
+      t <- torch_arange((-M + 1) / 2, (M + 1) / 2) * self$dt
+      if (length(t) %% 2 == 0) {
+        t <- t[1:-2] # requires odd filter size
+      }
+      # Sample wavelet and normalize
+      norm <- (self$dt / self$scales[i])^.5
+      filters[[i]] <- norm * self$wavelet$time(t, s = self$scales[i])
+    }
+    filters
+  },
   #' Given a list of temporal 1D filters of variable size, this method
   #' creates a list of `nn_conv1d()` objects that collectively form the filter bank.
  filter_bank = function(filters, padding_type = "same") {
@@ -58,14 +78,14 @@ wavelet_transform <- nn_module(
     is_complex <- torch_is_complex(filters[[1]])
     chn_out <- if (is_complex) 2 else 1
     for (i in 1:length(filters)) {
-      filt_weights <- if (is_complex) torch_cat(list(filters[[i]]$real$unsqueeze(2), filters[[i]]$imag$unsqueeze(2)), dim = 2) else filters[[i]]$unsqueeze(1)# filt.astype(np.float32)[None,:]
-      # filt_weights <- filt_weights$unsqueeze(3)# np.expand_dims(filt_weights, 1)  # append chn_in dimension
-      # filt_size <- filt_weights$ndim              # filter length
-      # padding <- self$get_padding(padding_type, filt_size)
-      # conv <- nn_conv1d(1, chn_out, kernel_size = filt_size, padding = padding, bias = FALSE)
-      # conv$weight$data <- filt_weights
-      # conv$weight$requires_grad_(FALSE)
-      # filter_bank[[i]] <- conv
+      filt_weights <- if (is_complex) torch_cat(list(filters[[i]]$real$unsqueeze(1), filters[[i]]$imag$unsqueeze(1)), dim = 1) else filters[[i]]$unsqueeze(1)
+      filt_weights <- filt_weights$unsqueeze(2) # append chn_in dimension
+      filt_size <- dim(filt_weights)[3]            # filter length
+      padding <- self$get_padding(padding_type, filt_size)
+      conv <- nn_conv1d(1, chn_out, kernel_size = filt_size, padding = padding, bias = FALSE)
+      conv$weight$requires_grad_(FALSE)
+      conv$weight[ , , ] <- filt_weights
+      filter_bank[[i]] <- conv
     }
     filter_bank
   },
@@ -112,24 +132,6 @@ wavelet_transform <- nn_module(
     }
     cwt
   },
-  # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10), and then initializes
-  # the filter bank consisting of rescaled versions of the mother wavelet. Also includes normalization.
-  build_filters = function() {
-    filters <- list()
-    for (i in 1:length(self$scales)) {
-      # Number of points needed to capture wavelet
-      M <- 10 * self$scales[i] / self$dt
-      # Times to use, centered at zero
-      t <- torch_arange((-M + 1) / 2, (M + 1) / 2) * self$dt
-      if (length(t) %% 2 == 0) {
-        t <- t[1:-2] # requires odd filter size
-      }
-      # Sample wavelet and normalize
-      norm <- (self$dt / self$scales[i])^.5
-      filters[[i]] <- norm * self$wavelet$time(t, s = self$scales[i])
-    }
-    filters
-  },
   # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10).
   compute_optimal_scales = function() {
     J <- floor((1 / self$dj) * log2(self$signal_length * self$dt / self$scale_minimum))
@@ -142,7 +144,7 @@ wavelet_transform <- nn_module(
   power = function() {
     if (isTRUE(self$unbias)) (torch_abs(self$cwt(x))$T^2 / self$scales)$T else torch_abs(self$cwt(x))^2
   },
-  get_padding = function(padding_type) {
+  get_padding = function(padding_type, kernel_size) {
     if (padding_type == "same") floor((kernel_size - 1) / 2) else 0
   },
   # Choose s0 so that the equivalent Fourier period is 2 * dt. See Torrence & Combo Sections 3f and 3h.
