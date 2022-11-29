@@ -5,19 +5,13 @@
 # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/wavelets_pytorch/network.py
 # Comments/documentation ported/adapted correspondingly.
 #
-# In-depth comments are taken from:
-# https://github.com/aaren/wavelets/blob/master/wavelets/transform.py
-# This is the "master repo" referred to by PyTorchWavelets as the reference
-# for Torrence & Compo.
-#
 #######################################################################################
 
 
 #' Continuous wavelet transform as described in Torrence and Compo,
 #' "A Practical Guide to Wavelet Analysis".
 #'
-#' @details In contrast to _aaren/wavelets_, but in accordance with further
-#' development in _QUVA-Lab/PyTorchWavelets_, this does not use the FFT,
+#' @details Like _QUVA-Lab/PyTorchWavelets_, this does not use the FFT,
 #' but a filter bank consisting of `torch::nn_conv1d()` modules.
 #' The code expects input sequences to be one-dimensional. It works with batches
 #' of signals.
@@ -35,7 +29,7 @@
 #' @param dt sample spacing, default is 1
 #' @param dj scale distribution parameter, default is 0.125
 #' @param wavelet wavelet object
-#' @param unbias whether to unbias the power spectrum
+#' @param unbias whether to unbias the power spectrum, as in Liu et al. 2007.
 
 wavelet_transform <- nn_module(
 

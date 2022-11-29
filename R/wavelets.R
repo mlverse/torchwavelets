@@ -4,11 +4,6 @@
 # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/wavelets_pytorch/wavelets.py
 # Comments/documentation in this file have also mostly been ported from there.
 #
-# In-depth comments are taken from:
-# https://github.com/aaren/wavelets/blob/master/wavelets/transform.py
-# This is the "master repo" referred to by PyTorchWavelets as the reference
-# for Torrence & Compo.
-#
 #######################################################################################
 
 
