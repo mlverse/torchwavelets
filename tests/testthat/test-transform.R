@@ -139,6 +139,12 @@ test_that("wavelet_transform fields and methods (using Morlet wavelet)", {
   y <- c(0.3943239924987704, 7.787456582134456e-09, 4.649060297586245)
   expect_equal(x, y, tolerance = 1e-1)
 
+  ### test power ###
+  x <- as.numeric(wtf$power(batch)$mean())
+  y <- as.numeric(wtf(batch)$abs()$square()$mean())
+  expect_equal(x, y)
+
+
   }
 )
 

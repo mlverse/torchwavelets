@@ -24,6 +24,8 @@
 #' @importFrom torch torch_cat
 #' @importFrom torch torch_reciprocal
 #' @importFrom torch nn_conv1d
+#' @importFrom torch torch_arange
+#' @importFrom torch torch_abs
 #'
 #' @param signal_length length of the signal to be processed
 #' @param dt sample spacing, default is 1
@@ -46,7 +48,7 @@ wavelet_transform <- nn_module(
     self$convs <- self$filter_bank(self$filters)
   },
   # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10), and then initializes
-  # the filter bank consisting of rescaled versions of the mother wavelet. Also includes normalization.
+  # the filter bank consisting of re-scaled versions of the mother wavelet. Also includes normalization.
   build_filters = function() {
     filters <- list()
     for (i in 1:length(self$scales)) {
@@ -83,26 +85,24 @@ wavelet_transform <- nn_module(
  cwt = function(x) {
    # Takes a batch of signals and convolves each signal with all elements
    # in the filter bank. After convolving the entire filter bank, the method returns
-   # a tensor of shape `[N,N_scales,1/2,T]` where the 1/2 number of channels depends
-   # on whether the filter bank is composed of real or complex filters. If the filters
-   # are complex the 2 channels represent `[real, imag]` parts.
-
+   # a tensor of shape `[batch_size,n_scales,1 or 2,T]` (the next-to-last dimension
+   # being of size 1 for real wavelets, 2 for complex ones; and T being the transformed values).
    results <- list()
    for (i in 1:length(self$convs)) {
      results[[i]] <- self$convs[[i]](x)
    }
-   results <- torch_stack(results)        # [n_scales,n_batch,2,t]
-   results <- results$permute(c(2,1,3,4)) # [n_batch,n_scales,2,t]
+   results <- torch_stack(results)        # [n_scales,batch_size,2,t]
+   results <- results$permute(c(2,1,3,4)) # [batch_size,n_scales,2,t]
    results
  },
   forward = function(x) {
     if (x$ndim == 1) {
-      # Append batch_size and chn_in dimensions
-      # [signal_length] => [n_batch,1,signal_length]
+      # Prepend batch and chn_in dimensions
+      # [signal_length] => [batch_size,1,signal_length]
       x <- x$unsqueeze(1)$unsqueeze(1)
     } else if (x$ndim == 2) {
-      # Just append chn_in dimension
-      # [n_batch,signal_length] => [n_batch,1,signal_length]
+      # Just insert chn_in dimension
+      # [batch_size,signal_length] => [batch_size,1,signal_length]
       x <- x$view(c(dim(x)[1], 1, dim(x)[2]))
     }
     num_examples <- x$shape[1]
@@ -111,15 +111,14 @@ wavelet_transform <- nn_module(
     cwt <- self$cwt(x)
 
     if (self$is_complex_wavelet) {
-    # Combine real and imag parts, returns object of shape
-    # [n_batch,n_scales,signal_length] of `type np.complex128`torch_complex()`
+    # Combine real and imag parts. Returns object of shape
+    # [batch_size,n_scales,signal_length] of type `torch_complex()`
       cwt <- cwt[ , , 1, ] * torch_complex(1, 0) + cwt[ , , 2, ] * torch_complex(0, 1)
     } else {
-    # Just squeeze the chn_out dimension (=1) to obtain an object of shape
-    # [n_batch,n_scales,signal_length] of type np.float64
+    # Remove the chn_out dimension to obtain an object of shape [batch_size,n_scales,signal_length].
       cwt = cwt$squeeze(3)
     }
-    # Squeeze batch dimension if single example
+    # Remove batch dimension if single example
     if (num_examples == 1) {
       cwt <- cwt$squeeze(1)
     }
@@ -132,10 +131,10 @@ wavelet_transform <- nn_module(
     scales
   },
   # Performs CWT and converts to a power spectrum (scalogram). See Torrence & Combo, Section 4d.
-  #' @param x `torch_tensor()`, batch of input signals of shape [n_batch,signal_length]
-  #' @return a `torch_tensor()`, scalogram for each signal [n_batch,n_scales,signal_length]
-  power = function() {
-    if (isTRUE(self$unbias)) (torch_abs(self$cwt(x))$T^2 / self$scales)$T else torch_abs(self$cwt(x))^2
+  # Expects a batch of input signals of shape `[batch_size,signal_length]` and
+  # returns a scalogram for each signal `[batch_size,n_scales,signal_length]`
+  power = function(x) {
+    if (self$unbias) (torch_abs((self$forward(x))$T)^2 / self$scales)$T else torch_abs(self$forward(x))^2
   },
   get_padding = function(padding_type, kernel_size) {
     if (padding_type == "same") floor((kernel_size - 1) / 2) else 0
@@ -164,13 +163,6 @@ wavelet_transform <- nn_module(
   complex_wavelet = function(value) {
     if (missing(value)) {
       torch_is_complex(private$.filters[0])
-    } else {
-      stop("Can't change wavelet properties.")
-    }
-  },
-  output_dtype = function(value) {
-    if (missing(value)) {
-      if (self$complex_wavelet(private$.wavelet)) torch_cfloat else torch_get_default_dtype()
     } else {
       stop("Can't change wavelet properties.")
     }

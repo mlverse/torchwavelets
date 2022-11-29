@@ -2,11 +2,11 @@
 % Please edit documentation in R/wavelets.R
 \name{Morlet}
 \alias{Morlet}
-\title{Complex Morlet wavelet, centred at zero.}
+\title{Complex Morlet wavelet, centered at zero.}
 \description{
-Complex Morlet wavelet, centred at zero.
+Complex Morlet wavelet, centered at zero.
 
-Complex Morlet wavelet, centred at zero.
+Complex Morlet wavelet, centered at zero.
 }
 \details{
 The standard version is:
@@ -17,13 +17,19 @@ of `w`.
 The complete version is:
 \deqn{pi**-0.25 * (exp(1j*w*x) - exp(-0.5*(w**2))) * exp(-0.5*(x**2))}
 The complete version of the Morlet wavelet, with a correction term to improve
-admissibility. For `w` greater than 5, the correction term is negligible
-Note that the energy of the return wavelet is not normalised according to `s`.
-The fundamental frequency of this wavelet in Hz is given by `f = 2*s*w*r / M`
+admissibility. For `w` greater than 5, the correction term is negligible.
+Note that the energy of the returned wavelet is not normalized according to `s`.
+The fundamental frequency of this wavelet in Hz is given by `f = 2*s*w*r / M`,
 where r is the sampling rate.
 }
-\seealso{
-scipy.signal.gausspulse
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{w0}}{the non-dimensional frequency constant.}
+
+\item{\code{C_d}}{value of C_d from TC98}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -41,6 +47,7 @@ scipy.signal.gausspulse
 \if{html}{\out{<a id="method-Morlet-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-new}{}}}
 \subsection{Method \code{new()}}{
+save `w0` (and possibly set `C_d`)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Morlet$new(w0 = 6)}\if{html}{\out{</div>}}
 }
@@ -48,8 +55,8 @@ scipy.signal.gausspulse
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{w0}}{the nondimensional frequency constant. If this is set too low
-then the wavelet does not sample very well: a value over 5 should be ok;
+\item{\code{w0}}{the non-dimensional frequency constant. If this is set too low,
+then the wavelet does not sample very well: a value higher than 5 should be ok.
 Terrence and Compo set it to 6.}
 }
 \if{html}{\out{</div>}}
@@ -59,7 +66,7 @@ Terrence and Compo set it to 6.}
 \if{html}{\out{<a id="method-Morlet-time"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-time}{}}}
 \subsection{Method \code{time()}}{
-Value of the wavelet at the given time
+Value of the wavelet at the given times
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Morlet$time(t, s = 1, complete = TRUE)}\if{html}{\out{</div>}}
 }
@@ -67,11 +74,12 @@ Value of the wavelet at the given time
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{t}}{Time. If s is not specified, this can be used as the non-dimensional time t/s.}
+\item{\code{t}}{Time. If `s` is not specified, this can be used as the non-dimensional
+time t/s.}
 
 \item{\code{s}}{Scaling factor. Default is 1.}
 
-\item{\code{complete}}{Whether to use the compxlete or the standard version.}
+\item{\code{complete}}{Whether to use the complete or the standard version.}
 }
 \if{html}{\out{</div>}}
 }
@@ -80,7 +88,7 @@ Value of the wavelet at the given time
 \if{html}{\out{<a id="method-Morlet-fourier_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-fourier_period}{}}}
 \subsection{Method \code{fourier_period()}}{
-Equivalent Fourier period of Morlet
+Equivalent Fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Morlet$fourier_period(s)}\if{html}{\out{</div>}}
 }
@@ -114,7 +122,7 @@ Compute the scale from the fourier period
 \if{html}{\out{<a id="method-Morlet-frequency"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-frequency}{}}}
 \subsection{Method \code{frequency()}}{
-Frequency representation of Morlet
+Frequency representation
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Morlet$frequency(w, s = 1)}\if{html}{\out{</div>}}
 }
@@ -122,7 +130,7 @@ Frequency representation of Morlet
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{w}}{angular frequency. If s is not specified, i.e. set to 1,
+\item{\code{w}}{angular frequency. If `s` is not specified, i.e. set to 1,
 this can be used as the non-dimensional angular frequency w * s.}
 
 \item{\code{s}}{the scaling factor. Default is 1.}
@@ -134,7 +142,7 @@ this can be used as the non-dimensional angular frequency w * s.}
 \if{html}{\out{<a id="method-Morlet-coi"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-coi}{}}}
 \subsection{Method \code{coi()}}{
-The e folding time for the autocorrelation of wavelet
+The e-folding time for the autocorrelation of wavelet
 power at each scale, i.e. the timescale over which an edge
 effect decays by a factor of 1/e^2.
 \subsection{Usage}{

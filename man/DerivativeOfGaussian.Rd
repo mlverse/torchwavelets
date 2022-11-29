@@ -2,28 +2,37 @@
 % Please edit documentation in R/wavelets.R
 \name{DerivativeOfGaussian}
 \alias{DerivativeOfGaussian}
-\title{Derivative of Gaussian wavelet of order `m`}
+\title{Derivative of Gaussian of order `m`}
 \description{
-Derivative of Gaussian wavelet of order `m`
+Derivative of Gaussian of order `m`
 
-Derivative of Gaussian wavelet of order `m`
+Derivative of Gaussian of order `m`
 }
 \details{
 When m = 2, this is also known as the "Mexican hat", "Marr" or "Ricker" wavelet.
 It models the function:
 ``A d^m/dx^m exp(-x^2 / 2)``,
 where ``A = (-1)^(m+1) / (gamma(m + 1/2))^.5`` and   ``x = t / s``.
-Note that the energy of the return wavelet is not normalised according to `s`.
+Note that the energy of the return wavelet is not normalized according to `s`.
 }
 \note{
-The derivative of the Gaussian has a polynomial representation:
-from http://en.wikipedia.org/wiki/Gaussian_function:
+The derivative of the Gaussian has a polynomial representation.
+From http://en.wikipedia.org/wiki/Gaussian_function:
 "Mathematically, the derivatives of the Gaussian function can be represented
 using Hermite functions. The n-th derivative of the Gaussian is the Gaussian
 function itself multiplied by the n-th Hermite polynomial, up to scale."
-http://en.wikipedia.org/wiki/Hermite_polynomial
-Here, we want the 'probabilists' Hermite polynomial (He_n),
-which is computed by scipy.special.hermitenorm
+For Hermite polynomials, see http://en.wikipedia.org/wiki/Hermite_polynomial.
+Here, we want the "probabilists" Hermite polynomial (He_n),
+which may be computed using `calculus::hermite`.
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{m}}{the order of the derivative}
+
+\item{\code{C_d}}{value of C_d from TC98}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -41,6 +50,7 @@ which is computed by scipy.special.hermitenorm
 \if{html}{\out{<a id="method-Derivative of Gaussian-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Derivative of Gaussian-new}{}}}
 \subsection{Method \code{new()}}{
+save `m` and set `C_d`
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DerivativeOfGaussian$new(m = 2)}\if{html}{\out{</div>}}
 }
@@ -48,7 +58,7 @@ which is computed by scipy.special.hermitenorm
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{m}}{the order}
+\item{\code{m}}{the order of the derivative}
 }
 \if{html}{\out{</div>}}
 }
@@ -57,7 +67,7 @@ which is computed by scipy.special.hermitenorm
 \if{html}{\out{<a id="method-Derivative of Gaussian-time"></a>}}
 \if{latex}{\out{\hypertarget{method-Derivative of Gaussian-time}{}}}
 \subsection{Method \code{time()}}{
-Value of the wavelet at the given time
+Value of the wavelet at the given times
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DerivativeOfGaussian$time(t, s = 1)}\if{html}{\out{</div>}}
 }
@@ -65,7 +75,8 @@ Value of the wavelet at the given time
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{t}}{Time. If s is not specified, this can be used as the non-dimensional time t/s.}
+\item{\code{t}}{Time. If `s` is not specified, this can be used as the
+non-dimensional time t/s.}
 
 \item{\code{s}}{Scaling factor. Default is 1.}
 }
@@ -76,7 +87,7 @@ Value of the wavelet at the given time
 \if{html}{\out{<a id="method-Derivative of Gaussian-fourier_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Derivative of Gaussian-fourier_period}{}}}
 \subsection{Method \code{fourier_period()}}{
-Equivalent Fourier period of wavelet
+Equivalent Fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DerivativeOfGaussian$fourier_period(s)}\if{html}{\out{</div>}}
 }
@@ -118,7 +129,7 @@ Frequency representation of wavelet
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{w}}{angular frequency. If s is not specified, i.e. set to 1,
+\item{\code{w}}{angular frequency. If `s` is not specified, i.e. set to 1,
 this can be used as the non-dimensional angular frequency w * s.}
 
 \item{\code{s}}{the scaling factor. Default is 1.}
@@ -130,7 +141,7 @@ this can be used as the non-dimensional angular frequency w * s.}
 \if{html}{\out{<a id="method-Derivative of Gaussian-coi"></a>}}
 \if{latex}{\out{\hypertarget{method-Derivative of Gaussian-coi}{}}}
 \subsection{Method \code{coi()}}{
-The e folding time for the autocorrelation of wavelet
+The e-folding time for the autocorrelation of wavelet
 power at each scale, i.e. the timescale over which an edge
 effect decays by a factor of 1/e^2.
 \subsection{Usage}{

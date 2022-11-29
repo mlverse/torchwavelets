@@ -2,7 +2,8 @@
 % Please edit documentation in R/transform.R
 \name{wavelet_transform}
 \alias{wavelet_transform}
-\title{Temporal filter bank in PyTorch storing a collection of nn.Conv1d filters.}
+\title{Continuous wavelet transform as described in Torrence and Compo,
+"A Practical Guide to Wavelet Analysis".}
 \usage{
 wavelet_transform(
   signal_length,
@@ -21,25 +22,17 @@ wavelet_transform(
 
 \item{wavelet}{wavelet object}
 
-\item{unbias}{whether to unbias the power spectrum}
-
-\item{x}{`torch_tensor()`, batch of input signals of shape [n_batch,signal_length]}
-}
-\value{
-torch.Variable, batch of outputs of size `[N,N_scales,1/2,T]`
+\item{unbias}{whether to unbias the power spectrum, as in Liu et al. 2007.
 Given a list of temporal 1D filters of variable size, this method
-creates a list of `nn_conv1d()` objects that collectively form the filter bank.
-
-a `torch_tensor()`, scalogram for each signal [n_batch,n_scales,signal_length]
+creates a list of `nn_conv1d()` objects that collectively form the filter bank.}
 }
 \description{
-Takes a batch of signals and convolves each signal with all elements
-in the filter bank. After convolving the entire filter bank, the method returns
-a tensor of shape `[N,N_scales,1/2,T]` where the 1/2 number of channels depends
-on whether the filter bank is composed of real or complex filters. If the filters
-are complex the 2 channels represent `[real, imag]` parts.
+Continuous wavelet transform as described in Torrence and Compo,
+"A Practical Guide to Wavelet Analysis".
 }
 \details{
-When cuda=True, the convolutions are performed on the GPU. If initialized with filters=None,
-the set_filters() method has to be called before actual running the convolutions.
+Like _QUVA-Lab/PyTorchWavelets_, this does not use the FFT,
+but a filter bank consisting of `torch::nn_conv1d()` modules.
+The code expects input sequences to be one-dimensional. It works with batches
+of signals.
 }

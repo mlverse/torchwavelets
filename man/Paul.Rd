@@ -12,6 +12,13 @@ Paul wavelet
 The Paul wavelet is defined as
 \deqn{(2 ** m * i ** m * m!) / (pi * (2 * m)!) * (1 - i * t / s) ** -(m + 1)}
 }
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{m}}{the order of the derivative}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -28,6 +35,7 @@ The Paul wavelet is defined as
 \if{html}{\out{<a id="method-Paul-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Paul-new}{}}}
 \subsection{Method \code{new()}}{
+save `m`
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Paul$new(m = 4)}\if{html}{\out{</div>}}
 }
@@ -52,7 +60,8 @@ Value of the wavelet at the given time
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{t}}{Time. If s is not specified, this can be used as the non-dimensional time t/s.}
+\item{\code{t}}{Time. If `s` is not specified, this can be used as the
+non-dimensional time t/s.}
 
 \item{\code{s}}{Scaling factor. Default is 1.}
 
@@ -65,7 +74,7 @@ Value of the wavelet at the given time
 \if{html}{\out{<a id="method-Paul-fourier_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Paul-fourier_period}{}}}
 \subsection{Method \code{fourier_period()}}{
-Equivalent Fourier period of wavelet
+Equivalent Fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Paul$fourier_period(s)}\if{html}{\out{</div>}}
 }
@@ -107,7 +116,7 @@ Frequency representation of wavelet
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{w}}{angular frequency. If s is not specified, i.e. set to 1,
+\item{\code{w}}{angular frequency. If `s` is not specified, i.e. set to 1,
 this can be used as the non-dimensional angular frequency w * s.}
 
 \item{\code{s}}{the scaling factor. Default is 1.}
@@ -119,8 +128,8 @@ this can be used as the non-dimensional angular frequency w * s.}
 \if{html}{\out{<a id="method-Paul-coi"></a>}}
 \if{latex}{\out{\hypertarget{method-Paul-coi}{}}}
 \subsection{Method \code{coi()}}{
-The e folding time for the autocorrelation of wavelet
-power at each scale, i.e. the timescale over which an edge
+The e-folding time for the autocorrelation of wavelet
+power at each scale, i.e. the time scale over which an edge
 effect decays by a factor of 1/e^2.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Paul$coi(s)}\if{html}{\out{</div>}}

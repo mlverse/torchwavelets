@@ -24,6 +24,7 @@
 #' where r is the sampling rate.
 #'
 #' @importFrom torch torch_complex
+#' @importFrom torch torch_exp
 #' @param w0 the non-dimensional frequency constant. If this is set too low,
 #' then the wavelet does not sample very well: a value higher than 5 should be ok.
 #' Terrence and Compo set it to 6.
@@ -32,11 +33,14 @@
 Morlet <- R6::R6Class(
   "Morlet",
   public = list(
+    #' @field w0 the non-dimensional frequency constant.
     w0 = NULL,
+    #' @field C_d value of C_d from TC98
     C_d = NULL,
+    #' @description save `w0` (and possibly set `C_d`)
     initialize = function(w0 = 6) {
       self$w0 <- w0
-      if (w0 == 6) self$C_d <- 0.776   # value of C_d from TC98
+      if (w0 == 6) self$C_d <- 0.776
     },
     #' @description Value of the wavelet at the given times
     #' @param t Time. If `s` is not specified, this can be used as the non-dimensional
@@ -107,17 +111,19 @@ Morlet <- R6::R6Class(
 #' Here, we want the "probabilists" Hermite polynomial (He_n),
 #' which may be computed using `calculus::hermite`.
 #'
-#' @param m the order
+#' @param m the order of the derivative
 #'
 #' @export
 DerivativeOfGaussian <- R6::R6Class(
   "Derivative of Gaussian",
   public = list(
+    #' @field m the order of the derivative
     m = NULL,
+    #' @field C_d value of C_d from TC98
     C_d = NULL,
+    #' @description save `m` and set `C_d`
     initialize = function(m = 2) {
       if (m == 2) {
-        # value of C_d from TC98
         self$C_d <- 3.541
       } else if (m == 6) {
         self$C_d <- 1.966
@@ -183,7 +189,9 @@ DerivativeOfGaussian <- R6::R6Class(
 Paul <- R6::R6Class(
   "Paul",
   public = list(
+    #' @field m the order of the derivative
     m = NULL,
+    #' @description save `m`
     initialize = function(m = 4) {
       self$m <- m
     },
@@ -248,6 +256,7 @@ MexicanHat <- R6::R6Class(
   "Mexican Hat",
   inherit = DerivativeOfGaussian,
   public = list(
+    #' @description create a Gaussian of order 2.
     initialize = function() {
       super$initialize(2)
       self$C_d = 3.541

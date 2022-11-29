@@ -36,6 +36,7 @@ This is a derivative of a Gaussian of order 2.
 \if{html}{\out{<a id="method-Mexican Hat-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Mexican Hat-new}{}}}
 \subsection{Method \code{new()}}{
+create a Gaussian of order 2.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MexicanHat$new()}\if{html}{\out{</div>}}
 }
