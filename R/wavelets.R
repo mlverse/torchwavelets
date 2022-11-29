@@ -1,5 +1,18 @@
+#######################################################################################
+#
+# Ported from:
+# https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/wavelets_pytorch/wavelets.py
+# Comments/documentation in this file have also mostly been ported from there.
+#
+# In-depth comments are taken from:
+# https://github.com/aaren/wavelets/blob/master/wavelets/transform.py
+# This is the "master repo" referred to by PyTorchWavelets as the reference
+# for Torrence & Compo.
+#
+#######################################################################################
 
-#' Complex Morlet wavelet, centred at zero.
+
+#' Complex Morlet wavelet, centered at zero.
 #'
 #' @details
 #' The standard version is:
@@ -10,17 +23,16 @@
 #' The complete version is:
 #' \deqn{pi**-0.25 * (exp(1j*w*x) - exp(-0.5*(w**2))) * exp(-0.5*(x**2))}
 #' The complete version of the Morlet wavelet, with a correction term to improve
-#' admissibility. For `w` greater than 5, the correction term is negligible
-#' Note that the energy of the return wavelet is not normalised according to `s`.
-#' The fundamental frequency of this wavelet in Hz is given by `f = 2*s*w*r / M`
+#' admissibility. For `w` greater than 5, the correction term is negligible.
+#' Note that the energy of the returned wavelet is not normalized according to `s`.
+#' The fundamental frequency of this wavelet in Hz is given by `f = 2*s*w*r / M`,
 #' where r is the sampling rate.
 #'
 #' @importFrom torch torch_complex
-#' @param w0 the nondimensional frequency constant. If this is set too low
-#' then the wavelet does not sample very well: a value over 5 should be ok;
+#' @param w0 the non-dimensional frequency constant. If this is set too low,
+#' then the wavelet does not sample very well: a value higher than 5 should be ok.
 #' Terrence and Compo set it to 6.
 #'
-#' @seealso scipy.signal.gausspulse
 #' @export
 Morlet <- R6::R6Class(
   "Morlet",
@@ -31,10 +43,11 @@ Morlet <- R6::R6Class(
       self$w0 <- w0
       if (w0 == 6) self$C_d <- 0.776   # value of C_d from TC98
     },
-    #' @description Value of the wavelet at the given time
-    #' @param t Time. If s is not specified, this can be used as the non-dimensional time t/s.
+    #' @description Value of the wavelet at the given times
+    #' @param t Time. If `s` is not specified, this can be used as the non-dimensional
+    #' time t/s.
     #' @param s Scaling factor. Default is 1.
-    #' @param complete Whether to use the compxlete or the standard version.
+    #' @param complete Whether to use the complete or the standard version.
     time = function(t, s = 1, complete = TRUE) {
       w <- self$w0
       x <- t / s
@@ -45,7 +58,7 @@ Morlet <- R6::R6Class(
       output <- pi^(-0.25) * output * torch_exp(-0.5 * x^2)
       output
     },
-    #' @description Equivalent Fourier period of Morlet
+    #' @description Equivalent Fourier period
     #' @param s Scaling factor
     fourier_period = function(s) {
       4 * pi * s / (self$w0 + (2 + self$w0^2)^.5)
@@ -58,8 +71,8 @@ Morlet <- R6::R6Class(
       coeff <- sqrt(self$w0 * self$w0 + 2)
       (p * (coeff + self$w0)) / (4 * pi)
     },
-    #' @description Frequency representation of Morlet
-    #' @param w angular frequency. If s is not specified, i.e. set to 1,
+    #' @description Frequency representation
+    #' @param w angular frequency. If `s` is not specified, i.e. set to 1,
     #' this can be used as the non-dimensional angular frequency w * s.
     #' @param s the scaling factor. Default is 1.
     frequency = function(w, s = 1) {
@@ -69,7 +82,7 @@ Morlet <- R6::R6Class(
       f <- pi^-.25 * Hw * torch_exp((-(x - self$w0)^2) / 2)
       as.numeric(f)
     },
-    #' @description The e folding time for the autocorrelation of wavelet
+    #' @description The e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the timescale over which an edge
     #' effect decays by a factor of 1/e^2.
     #' @param s Scaling factor
@@ -81,23 +94,23 @@ Morlet <- R6::R6Class(
   )
 )
 
-#' Derivative of Gaussian wavelet of order `m`
+#' Derivative of Gaussian of order `m`
 #'
 #' @details
 #' When m = 2, this is also known as the "Mexican hat", "Marr" or "Ricker" wavelet.
 #' It models the function:
 #' ``A d^m/dx^m exp(-x^2 / 2)``,
 #' where ``A = (-1)^(m+1) / (gamma(m + 1/2))^.5`` and   ``x = t / s``.
-#' Note that the energy of the return wavelet is not normalised according to `s`.
+#' Note that the energy of the return wavelet is not normalized according to `s`.
 #'
-#' @note The derivative of the Gaussian has a polynomial representation:
-#' from http://en.wikipedia.org/wiki/Gaussian_function:
+#' @note The derivative of the Gaussian has a polynomial representation.
+#' From http://en.wikipedia.org/wiki/Gaussian_function:
 #' "Mathematically, the derivatives of the Gaussian function can be represented
 #' using Hermite functions. The n-th derivative of the Gaussian is the Gaussian
 #' function itself multiplied by the n-th Hermite polynomial, up to scale."
-#' http://en.wikipedia.org/wiki/Hermite_polynomial
-#' Here, we want the 'probabilists' Hermite polynomial (He_n),
-#' which is computed by scipy.special.hermitenorm
+#' For Hermite polynomials, see http://en.wikipedia.org/wiki/Hermite_polynomial.
+#' Here, we want the "probabilists" Hermite polynomial (He_n),
+#' which may be computed using `calculus::hermite`.
 #'
 #' @param m the order
 #'
@@ -116,13 +129,13 @@ DerivativeOfGaussian <- R6::R6Class(
       }
       self$m <- m
     },
-    #' @description Value of the wavelet at the given time
-    #' @param t Time. If s is not specified, this can be used as the non-dimensional time t/s.
+    #' @description Value of the wavelet at the given times
+    #' @param t Time. If `s` is not specified, this can be used as the
+    #' non-dimensional time t/s.
     #' @param s Scaling factor. Default is 1.
     time = function(t, s = 1) {
       x <- t / s
       m <- self$m
-      # compute the Hermite polynomial (used to evaluate the derivative of a Gaussian)
       h <- calculus::hermite(m)[[m + 1]]$f
       eval(parse(text = paste('He_n <- function(x) {', h, '}', sep = '')))
       output <- He_n(x) * torch_exp(-x^2 / 2)
@@ -130,7 +143,7 @@ DerivativeOfGaussian <- R6::R6Class(
       output <- output * const
       output
     },
-    #' @description Equivalent Fourier period of wavelet
+    #' @description Equivalent Fourier period
     #' @param s Scaling factor
     fourier_period = function(s) {
       2 * pi * s / (self$m + 0.5)^.5
@@ -141,7 +154,7 @@ DerivativeOfGaussian <- R6::R6Class(
       stop("not implemented")
     },
     #' @description Frequency representation of wavelet
-    #' @param w angular frequency. If s is not specified, i.e. set to 1,
+    #' @param w angular frequency. If `s` is not specified, i.e. set to 1,
     #' this can be used as the non-dimensional angular frequency w * s.
     #' @param s the scaling factor. Default is 1.
     frequency = function(w, s = 1) {
@@ -152,7 +165,7 @@ DerivativeOfGaussian <- R6::R6Class(
       output <- output * const
       as.numeric(output)
     },
-    #' @description The e folding time for the autocorrelation of wavelet
+    #' @description The e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the timescale over which an edge
     #' effect decays by a factor of 1/e^2.
     #' @param s Scaling factor
@@ -180,7 +193,8 @@ Paul <- R6::R6Class(
       self$m <- m
     },
     #' @description Value of the wavelet at the given time
-    #' @param t Time. If s is not specified, this can be used as the non-dimensional time t/s.
+    #' @param t Time. If `s` is not specified, this can be used as the
+    #' non-dimensional time t/s.
     #' @param s Scaling factor. Default is 1.
     #' @param complete Whether to use the complete or the standard version.
     time = function(t, s = 1) {
@@ -192,7 +206,7 @@ Paul <- R6::R6Class(
       output <- const * functional_form
       output
     },
-    #' @description Equivalent Fourier period of wavelet
+    #' @description Equivalent Fourier period
     #' @param s Scaling factor
     fourier_period = function(s) {
       4 * pi * s / (2 * self$m + 1)
@@ -203,7 +217,7 @@ Paul <- R6::R6Class(
       stop("not implemented")
     },
     #' @description Frequency representation of wavelet
-    #' @param w angular frequency. If s is not specified, i.e. set to 1,
+    #' @param w angular frequency. If `s` is not specified, i.e. set to 1,
     #' this can be used as the non-dimensional angular frequency w * s.
     #' @param s the scaling factor. Default is 1.
     frequency = function(w, s = 1) {
@@ -211,14 +225,14 @@ Paul <- R6::R6Class(
       x <- w * s
       # Heaviside mock
       Hw <- 0.5 * (sign(x) + 1)
-      # prefactor
+      # pre-factor
       const <- 2^m / (m * factorial(2 * m - 1))^ .5
       functional_form <- Hw * (x)^m * torch_exp(-x)
       output <- const * functional_form
       as.numeric(output)
     },
-    #' @description The e folding time for the autocorrelation of wavelet
-    #' power at each scale, i.e. the timescale over which an edge
+    #' @description The e-folding time for the autocorrelation of wavelet
+    #' power at each scale, i.e. the time scale over which an edge
     #' effect decays by a factor of 1/e^2.
     #' @param s Scaling factor
     coi = function(s) {

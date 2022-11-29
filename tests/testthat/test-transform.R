@@ -1,4 +1,4 @@
-test_that("basic functionality", {
+test_that("wavelet_transform fields and methods (using Morlet wavelet)", {
   # expected values computed from
   # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/examples/simple_example.py
 
@@ -141,3 +141,71 @@ test_that("basic functionality", {
 
   }
 )
+
+test_that("wavelet_transform, Mexican Hat", {
+  # expected values computed from
+  # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/examples/simple_example.py
+
+  dt <- 0.1
+  dj <- 0.125
+  batch_size <- 32
+
+  t <- torch::torch_linspace(0, 10, floor(10/dt))
+  frequencies <- torch::torch_tensor(runif(batch_size, -0.5, 2.0))
+  batch <- torch::torch_zeros(batch_size, length(t))
+  for (f in 1:length(frequencies)) {
+    batch[f, ] <- torch::torch_sin(2 * pi * frequencies[f] * t)
+  }
+
+  wavelet <- MexicanHat$new()
+  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
+  transform <- wtf(batch)
+
+  x <- transform$shape
+  y <- c(32, 62, 100)
+  expect_equal(x, y)
+
+  x <- c(as.numeric(transform$mean()), as.numeric(transform$min()), as.numeric(transform$max()))
+  y <- c(-0.01580384674525963, -6.3885040283203125, 6.596841335296631)
+  expect_equal(x, y, tolerance = 1e-1)
+
+}
+)
+
+test_that("wavelet_transform, Paul wavelet", {
+  # expected values computed from
+  # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/examples/simple_example.py
+
+  dt <- 0.1
+  dj <- 0.125
+  batch_size <- 32
+
+  t <- torch::torch_linspace(0, 10, floor(10/dt))
+  frequencies <- torch::torch_tensor(runif(batch_size, -0.5, 2.0))
+  batch <- torch::torch_zeros(batch_size, length(t))
+  for (f in 1:length(frequencies)) {
+    batch[f, ] <- torch::torch_sin(2 * pi * frequencies[f] * t)
+  }
+
+  wavelet <- Paul$new()
+  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
+  transform <- wtf(batch)
+
+  x <- transform$shape
+  y <- c(32, 50, 100)
+  expect_equal(x, y)
+
+  x <- c(as.numeric(wtf(batch)$real$mean()), as.numeric(wtf(batch)$real$min()), as.numeric(wtf(batch)$real$max()))
+  y <- c(-0.0029783361621269462, -4.427924633026123, 4.5088677406311035)
+  expect_equal(x, y, tolerance = 1e-0) # ??
+  x <- c(as.numeric(wtf(batch)$imag$mean()), as.numeric(wtf(batch)$imag$min()), as.numeric(wtf(batch)$imag$max()))
+  y <- c(-0.002633194155512286, -5.00217866897583, 5.001322269439697)
+  expect_equal(x, y, tolerance = 1e-0) # ??
+  x <- c(as.numeric(wtf(batch)$abs()$mean()), as.numeric(wtf(batch)$abs()$min()), as.numeric(wtf(batch)$abs()$max()))
+  y <- c(0.676334777904302, 1.9461160282119255e-06, 5.00279809480148)
+  expect_equal(x, y, tolerance = 1e-0) # ??
+
+}
+)
+
+

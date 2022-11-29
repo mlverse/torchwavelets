@@ -1,8 +1,26 @@
+#######################################################################################
+#
+# Ported and refactored from:
+# https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/wavelets_pytorch/transform.py
+# https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/wavelets_pytorch/network.py
+# Comments/documentation ported/adapted correspondingly.
+#
+# In-depth comments are taken from:
+# https://github.com/aaren/wavelets/blob/master/wavelets/transform.py
+# This is the "master repo" referred to by PyTorchWavelets as the reference
+# for Torrence & Compo.
+#
+#######################################################################################
 
-#' Temporal filter bank in PyTorch storing a collection of nn.Conv1d filters.
+
+#' Continuous wavelet transform as described in Torrence and Compo,
+#' "A Practical Guide to Wavelet Analysis".
 #'
-#' @details When cuda=True, the convolutions are performed on the GPU. If initialized with filters=None,
-#' the set_filters() method has to be called before actual running the convolutions.
+#' @details In contrast to _aaren/wavelets_, but in accordance with further
+#' development in _QUVA-Lab/PyTorchWavelets_, this does not use the FFT,
+#' but a filter bank consisting of `torch::nn_conv1d()` modules.
+#' The code expects input sequences to be one-dimensional. It works with batches
+#' of signals.
 #'
 #' @importFrom torch nn_module
 #' @importFrom torch torch_stack
