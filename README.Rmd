@@ -10,4 +10,15 @@ knitr::opts_chunk$set(eval = FALSE)
 
 ## TBD
 
-Illustrate impact of different s
+```{r}
+nino_data <- readr::read_table(
+  system.file("extdata", "nino3data.asc", package = "torchwavelets"),
+  skip = 3,
+  col_names = c("time", "sst", "anomaly"))
+
+anomaly <- nino_data[ , 3]%>% unlist() %>% as.numeric() %>% torch_tensor()
+dt <- nino_data[ , 1] %>% unlist() %>% as.numeric() %>% diff() %>% mean()
+
+wtf <- wavelet_transform(length(anomaly), dt = dt)
+wtf(anomaly)
+```

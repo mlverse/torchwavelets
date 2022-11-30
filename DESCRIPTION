@@ -10,7 +10,8 @@ License: GPL
 Encoding: UTF-8
 LazyData: true
 Imports:
-  torch
+  torch,
+  calculus
 Suggests:
   testthat
 RoxygenNote: 7.2.1

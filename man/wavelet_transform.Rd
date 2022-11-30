@@ -9,7 +9,7 @@ wavelet_transform(
   signal_length,
   dt = 1,
   dj = 0.125,
-  wavelet = Morlet$new(),
+  wavelet = torchwavelets::Morlet$new(),
   unbias = FALSE
 )
 }

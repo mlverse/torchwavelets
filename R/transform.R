@@ -35,7 +35,7 @@
 
 wavelet_transform <- nn_module(
 
-  initialize = function(signal_length, dt = 1, dj = 0.125, wavelet = Morlet$new(), unbias = FALSE) {
+  initialize = function(signal_length, dt = 1, dj = 0.125, wavelet = torchwavelets::Morlet$new(), unbias = FALSE) {
     self$signal_length <- signal_length
     self$dt <- dt
     self$dj <- dj
