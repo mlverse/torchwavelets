@@ -28,6 +28,10 @@ library(tidyverse)
 
 times <- nino_data$time
 scales <- as.numeric(wtf$scales)
+#coi <- wtf$coi
+#C, S = wa.coi
+#ax.fill_between(x=C, y1=S, y2=s.max(), color='gray', alpha=0.3)
+
 df <- as_tibble(as.matrix(power_spectrum$t()), .name_repair = "universal") %>%
   mutate(time = times) %>%
   pivot_longer(!time, names_to = "scale", values_to = "power") %>%
@@ -37,14 +41,22 @@ df <- as_tibble(as.matrix(power_spectrum$t()), .name_repair = "universal") %>%
 ```
 
 ```{r}
+labeled_scales = c(0.5, 1, 2, 4, 8, 16, 32, 64)
+labeled_frequencies <- round(as.numeric(wtf$fourier_period(labeled_scales)), 1)
+
 ggplot(df, aes(time, scale, z = power)) +
   #scale_y_continuous(trans = c("log10", "reverse")) + 
   scale_y_continuous(
     trans = scales::compose_trans(scales::log2_trans(), scales::reverse_trans()),
     breaks = c(0.5, 1, 2, 4, 8, 16, 32, 64),
-    expand = c(0,0)) + 
+    expand = c(0,0),
+    sec.axis = dup_axis(
+      labels = scales::label_number(labeled_frequencies),
+      name = "Fourier period (years)")
+    ) + 
   ylab("scale (years)") +
   scale_x_continuous(breaks = seq(1880, 1990, by = 10), expand = c(0,0)) +
   xlab("year") +
-  geom_contour_filled(show.legend = FALSE) 
+  geom_contour_filled(show.legend = FALSE) +
+  scale_fill_viridis_d(option = "turbo")
 ```
