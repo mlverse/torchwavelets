@@ -9,8 +9,7 @@ wavelet_transform(
   signal_length,
   dt = 1,
   dj = 0.125,
-  wavelet = torchwavelets::Morlet$new(),
-  unbias = FALSE
+  wavelet = torchwavelets::Morlet$new()
 )
 }
 \arguments{
@@ -20,9 +19,7 @@ wavelet_transform(
 
 \item{dj}{scale distribution parameter, default is 0.125}
 
-\item{wavelet}{wavelet object}
-
-\item{unbias}{whether to unbias the power spectrum, as in Liu et al. 2007.
+\item{wavelet}{wavelet object
 Given a list of temporal 1D filters of variable size, this method
 creates a list of `nn_conv1d()` objects that collectively form the filter bank.}
 }

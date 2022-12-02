@@ -31,23 +31,21 @@
 #' @param dt sample spacing, default is 1
 #' @param dj scale distribution parameter, default is 0.125
 #' @param wavelet wavelet object
-#' @param unbias whether to unbias the power spectrum, as in Liu et al. 2007.
 
 wavelet_transform <- nn_module(
 
-  initialize = function(signal_length, dt = 1, dj = 0.125, wavelet = torchwavelets::Morlet$new(), unbias = FALSE) {
+  initialize = function(signal_length, dt = 1, dj = 0.125, wavelet = torchwavelets::Morlet$new()) {
     self$signal_length <- signal_length
     self$dt <- dt
     self$dj <- dj
     self$wavelet <- wavelet
-    self$unbias <- unbias
     self$scale_minimum <- self$compute_minimum_scale()
     self$scales <- self$compute_optimal_scales()
     self$filters <- self$build_filters()
     self$is_complex_wavelet <- torch_is_complex(self$filters[[1]])
     self$convs <- self$filter_bank(self$filters)
   },
-  # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10), and then initializes
+  # Determines the optimal scale distribution (see Torrence & Compo, Eq. 9-10), and then initializes
   # the filter bank consisting of re-scaled versions of the mother wavelet. Also includes normalization.
   build_filters = function() {
     filters <- list()
@@ -124,22 +122,23 @@ wavelet_transform <- nn_module(
     }
     cwt
   },
-  # Determines the optimal scale distribution (see Torrence & Combo, Eq. 9-10).
+  # Determines the optimal scale distribution (see Torrence & Compo, Eq. 9-10).
   compute_optimal_scales = function() {
     J <- floor((1 / self$dj) * log2(self$signal_length * self$dt / self$scale_minimum))
     scales <- self$scale_minimum * 2^(self$dj * torch_arange(0, J))
     scales
   },
-  # Performs CWT and converts to a power spectrum (scalogram). See Torrence & Combo, Section 4d.
+  # Performs CWT and converts to a power spectrum (scalogram). See Torrence & Compo, Section 4d.
   # Expects a batch of input signals of shape `[batch_size,signal_length]` and
   # returns a scalogram for each signal `[batch_size,n_scales,signal_length]`
-  power = function(x) {
-    if (self$unbias) (torch_abs((self$forward(x))$T)^2 / self$scales)$T else torch_abs(self$forward(x))^2
+  # unbias: whether to unbias the power spectrum, as in Liu et al. 2007.
+  power = function(x, unbias = FALSE) {
+    if (unbias) (torch_abs((self$forward(x))$T)^2 / self$scales)$T else torch_abs(self$forward(x))^2
   },
   get_padding = function(padding_type, kernel_size) {
     if (padding_type == "same") floor((kernel_size - 1) / 2) else 0
   },
-  # Choose s0 so that the equivalent Fourier period is 2 * dt. See Torrence & Combo Sections 3f and 3h.
+  # Choose s0 so that the equivalent Fourier period is 2 * dt. See Torrence & Compo Sections 3f and 3h.
   compute_minimum_scale = function() {
     dt <- self$dt
     f <- self$wavelet$fourier_period
