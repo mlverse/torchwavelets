@@ -1,11 +1,11 @@
 Package: torchwavelets
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Wavelet Analysis as per Torrence and Compo, 1998.
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Sigrid Keydana
+Maintainer: sigrid@posit.co
+Description: Implementation of wavelet analysis logic as described in the 1998
+  Torrence and Compo paper, "A Practical Guide to Wavelet Analysis".
 License: GPL
 Encoding: UTF-8
 LazyData: true
@@ -13,5 +13,8 @@ Imports:
   torch,
   calculus
 Suggests:
-  testthat
+  testthat,
+  rmarkdown,
+  knitr
+VignetteBuilder: knitr
 RoxygenNote: 7.2.1

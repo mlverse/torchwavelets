@@ -67,7 +67,7 @@ save `m` and set `C_d`
 \if{html}{\out{<a id="method-Derivative of Gaussian-time"></a>}}
 \if{latex}{\out{\hypertarget{method-Derivative of Gaussian-time}{}}}
 \subsection{Method \code{time()}}{
-Value of the wavelet at the given times
+value of the wavelet at the given times
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DerivativeOfGaussian$time(t, s = 1)}\if{html}{\out{</div>}}
 }
@@ -75,10 +75,10 @@ Value of the wavelet at the given times
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{t}}{Time. If `s` is not specified, this can be used as the
+\item{\code{t}}{time. If `s` is not specified, this can be used as the
 non-dimensional time t/s.}
 
-\item{\code{s}}{Scaling factor. Default is 1.}
+\item{\code{s}}{scaling factor. Default is 1.}
 }
 \if{html}{\out{</div>}}
 }
@@ -87,7 +87,7 @@ non-dimensional time t/s.}
 \if{html}{\out{<a id="method-Derivative of Gaussian-fourier_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Derivative of Gaussian-fourier_period}{}}}
 \subsection{Method \code{fourier_period()}}{
-Equivalent Fourier period
+equivalent Fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DerivativeOfGaussian$fourier_period(s)}\if{html}{\out{</div>}}
 }
@@ -95,7 +95,7 @@ Equivalent Fourier period
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{s}}{Scaling factor}
+\item{\code{s}}{scaling factor}
 }
 \if{html}{\out{</div>}}
 }
@@ -104,7 +104,7 @@ Equivalent Fourier period
 \if{html}{\out{<a id="method-Derivative of Gaussian-scale_from_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Derivative of Gaussian-scale_from_period}{}}}
 \subsection{Method \code{scale_from_period()}}{
-Compute the scale from the fourier period
+compute the scale from the fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DerivativeOfGaussian$scale_from_period(period)}\if{html}{\out{</div>}}
 }
@@ -121,7 +121,7 @@ Compute the scale from the fourier period
 \if{html}{\out{<a id="method-Derivative of Gaussian-frequency"></a>}}
 \if{latex}{\out{\hypertarget{method-Derivative of Gaussian-frequency}{}}}
 \subsection{Method \code{frequency()}}{
-Frequency representation of wavelet
+frequency representation of wavelet
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DerivativeOfGaussian$frequency(w, s = 1)}\if{html}{\out{</div>}}
 }
@@ -151,7 +151,7 @@ effect decays by a factor of 1/e^2.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{s}}{Scaling factor}
+\item{\code{s}}{scaling factor}
 }
 \if{html}{\out{</div>}}
 }

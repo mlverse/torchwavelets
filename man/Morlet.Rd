@@ -66,7 +66,7 @@ Terrence and Compo set it to 6.}
 \if{html}{\out{<a id="method-Morlet-time"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-time}{}}}
 \subsection{Method \code{time()}}{
-Value of the wavelet at the given times
+value of the wavelet at the given times
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Morlet$time(t, s = 1, complete = TRUE)}\if{html}{\out{</div>}}
 }
@@ -74,12 +74,12 @@ Value of the wavelet at the given times
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{t}}{Time. If `s` is not specified, this can be used as the non-dimensional
+\item{\code{t}}{time. If `s` is not specified, this can be used as the non-dimensional
 time t/s.}
 
-\item{\code{s}}{Scaling factor. Default is 1.}
+\item{\code{s}}{scaling factor. Default is 1.}
 
-\item{\code{complete}}{Whether to use the complete or the standard version.}
+\item{\code{complete}}{whether to use the complete or the standard version.}
 }
 \if{html}{\out{</div>}}
 }
@@ -88,7 +88,7 @@ time t/s.}
 \if{html}{\out{<a id="method-Morlet-fourier_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-fourier_period}{}}}
 \subsection{Method \code{fourier_period()}}{
-Equivalent Fourier period
+equivalent Fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Morlet$fourier_period(s)}\if{html}{\out{</div>}}
 }
@@ -96,7 +96,7 @@ Equivalent Fourier period
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{s}}{Scaling factor}
+\item{\code{s}}{scaling factor}
 }
 \if{html}{\out{</div>}}
 }
@@ -105,7 +105,7 @@ Equivalent Fourier period
 \if{html}{\out{<a id="method-Morlet-scale_from_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-scale_from_period}{}}}
 \subsection{Method \code{scale_from_period()}}{
-Compute the scale from the fourier period
+compute the scale from the fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Morlet$scale_from_period(p)}\if{html}{\out{</div>}}
 }
@@ -122,7 +122,7 @@ Compute the scale from the fourier period
 \if{html}{\out{<a id="method-Morlet-frequency"></a>}}
 \if{latex}{\out{\hypertarget{method-Morlet-frequency}{}}}
 \subsection{Method \code{frequency()}}{
-Frequency representation
+frequency representation
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Morlet$frequency(w, s = 1)}\if{html}{\out{</div>}}
 }
@@ -152,7 +152,7 @@ effect decays by a factor of 1/e^2.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{s}}{Scaling factor}
+\item{\code{s}}{scaling factor}
 }
 \if{html}{\out{</div>}}
 }

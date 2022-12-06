@@ -42,11 +42,11 @@ Morlet <- R6::R6Class(
       self$w0 <- w0
       if (w0 == 6) self$C_d <- 0.776
     },
-    #' @description Value of the wavelet at the given times
-    #' @param t Time. If `s` is not specified, this can be used as the non-dimensional
+    #' @description value of the wavelet at the given times
+    #' @param t time. If `s` is not specified, this can be used as the non-dimensional
     #' time t/s.
-    #' @param s Scaling factor. Default is 1.
-    #' @param complete Whether to use the complete or the standard version.
+    #' @param s scaling factor. Default is 1.
+    #' @param complete whether to use the complete or the standard version.
     time = function(t, s = 1, complete = TRUE) {
       w <- self$w0
       x <- t / s
@@ -57,12 +57,12 @@ Morlet <- R6::R6Class(
       output <- pi^(-0.25) * output * torch_exp(-0.5 * x^2)
       output
     },
-    #' @description Equivalent Fourier period
-    #' @param s Scaling factor
+    #' @description equivalent Fourier period
+    #' @param s scaling factor
     fourier_period = function(s) {
       4 * pi * s / (self$w0 + (2 + self$w0^2)^.5)
     },
-    #' @description Compute the scale from the fourier period
+    #' @description compute the scale from the fourier period
     #' @param p Fourier period
     scale_from_period = function(p) {
       # Solve 4 * pi * scale / (w0 + (2 + w0 ** 2) ** .5)
@@ -70,7 +70,7 @@ Morlet <- R6::R6Class(
       coeff <- sqrt(self$w0 * self$w0 + 2)
       (p * (coeff + self$w0)) / (4 * pi)
     },
-    #' @description Frequency representation
+    #' @description frequency representation
     #' @param w angular frequency. If `s` is not specified, i.e. set to 1,
     #' this can be used as the non-dimensional angular frequency w * s.
     #' @param s the scaling factor. Default is 1.
@@ -84,7 +84,7 @@ Morlet <- R6::R6Class(
     #' @description The e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the timescale over which an edge
     #' effect decays by a factor of 1/e^2.
-    #' @param s Scaling factor
+    #' @param s scaling factor
     coi = function(s) {
       # This can be worked out analytically by solving
       # |Y_0(T)|^2 / |Y_0(0)|^2 = 1 / e^2
@@ -130,10 +130,10 @@ DerivativeOfGaussian <- R6::R6Class(
       }
       self$m <- m
     },
-    #' @description Value of the wavelet at the given times
-    #' @param t Time. If `s` is not specified, this can be used as the
+    #' @description value of the wavelet at the given times
+    #' @param t time. If `s` is not specified, this can be used as the
     #' non-dimensional time t/s.
-    #' @param s Scaling factor. Default is 1.
+    #' @param s scaling factor. Default is 1.
     time = function(t, s = 1) {
       x <- t / s
       m <- self$m
@@ -144,17 +144,17 @@ DerivativeOfGaussian <- R6::R6Class(
       output <- output * const
       output
     },
-    #' @description Equivalent Fourier period
-    #' @param s Scaling factor
+    #' @description equivalent Fourier period
+    #' @param s scaling factor
     fourier_period = function(s) {
       2 * pi * s / (self$m + 0.5)^.5
     },
-    #' @description Compute the scale from the fourier period
+    #' @description compute the scale from the fourier period
     #' @param period Fourier period
     scale_from_period = function(period) {
       stop("not implemented")
     },
-    #' @description Frequency representation of wavelet
+    #' @description frequency representation of wavelet
     #' @param w angular frequency. If `s` is not specified, i.e. set to 1,
     #' this can be used as the non-dimensional angular frequency w * s.
     #' @param s the scaling factor. Default is 1.
@@ -169,7 +169,7 @@ DerivativeOfGaussian <- R6::R6Class(
     #' @description The e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the timescale over which an edge
     #' effect decays by a factor of 1/e^2.
-    #' @param s Scaling factor
+    #' @param s scaling factor
     coi = function(s) {
       # This can be worked out analytically by solving
       # |Y_0(T)|^2 / |Y_0(0)|^2 = 1 / e^2
@@ -195,11 +195,11 @@ Paul <- R6::R6Class(
     initialize = function(m = 4) {
       self$m <- m
     },
-    #' @description Value of the wavelet at the given time
-    #' @param t Time. If `s` is not specified, this can be used as the
+    #' @description value of the wavelet at the given time
+    #' @param t time. If `s` is not specified, this can be used as the
     #' non-dimensional time t/s.
-    #' @param s Scaling factor. Default is 1.
-    #' @param complete Whether to use the complete or the standard version.
+    #' @param s scaling factor. Default is 1.
+    #' @param complete whether to use the complete or the standard version.
     time = function(t, s = 1) {
       m <- self$m
       x <- t / s
@@ -209,20 +209,20 @@ Paul <- R6::R6Class(
       output <- const * functional_form
       output
     },
-    #' @description Equivalent Fourier period
-    #' @param s Scaling factor
+    #' @description equivalent Fourier period
+    #' @param s scaling factor
     fourier_period = function(s) {
       4 * pi * s / (2 * self$m + 1)
     },
-    #' @description Compute the scale from the fourier period
+    #' @description compute the scale from the fourier period
     #' @param period Fourier period
     scale_from_period = function(period) {
       stop("not implemented")
     },
-    #' @description Frequency representation of wavelet
+    #' @description frequency representation of wavelet
     #' @param w angular frequency. If `s` is not specified, i.e. set to 1,
     #' this can be used as the non-dimensional angular frequency w * s.
-    #' @param s the scaling factor. Default is 1.
+    #' @param s scaling factor. Default is 1.
     frequency = function(w, s = 1) {
       m <- self$m
       x <- w * s
@@ -234,10 +234,10 @@ Paul <- R6::R6Class(
       output <- const * functional_form
       as.numeric(output)
     },
-    #' @description The e-folding time for the autocorrelation of wavelet
+    #' @description the e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the time scale over which an edge
     #' effect decays by a factor of 1/e^2.
-    #' @param s Scaling factor
+    #' @param s scaling factor
     coi = function(s) {
       # This can be worked out analytically by solving
       # |Y_0(T)|^2 / |Y_0(0)|^2 = 1 / e^2

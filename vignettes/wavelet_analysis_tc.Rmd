@@ -1,21 +1,29 @@
 ---
-title: "Untitled"
-output: html_document
-date: "2022-12-01"
+title: "Wavelet Analysis following Torrence and Compo, 1998"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Wavelet analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
+
+# Usage notes
+
+This document contains notes on what the various parameters mean, drawing directly on definitions in the Torrence & Compo paper.
 
 ## Parameters to `wavelet_transform()`: `dt` and `dj`
 
-`wavelet_transform()`, in its constructor, requires just a single argument to be passed: the length of the series. However, while the other parameters do have defaults, it is important to know how they influence the result.
-For the wavelet used (parameter `wavelet`) this is self-evident.
-`dt` indicates the time between samples, expressed in the unit we want to work with. For example, with the Niño data, if we want to report results in years, we pass in a `dt` of ~1/12.
-For `dj`, the matter is more complex. Below, we discuss how `wavelet_transform()` computes the set of scale parameters used; `dj` determines the spacing between them. The smaller `dj`, the closer together the scales used. What makes for a useful setting depends on the width (in Fourier space) of the wavelet function in question. Citing Torrence and Compo:
->  For the Morlet wavelet, a $\delta_j$ of about 0.5 is the largest value that still gives adequate sampling in scale, while for the other wavelet functions, a larger value can be used.
+`wavelet_transform()`, in its constructor, requires just a single argument to be passed: the length of the series.
 
+However, while the other parameters do have defaults, it is important to know how they influence the result. Regarding wavelet used (parameter `wavelet`), this is self-evident. `dt` indicates time between samples, expressed in the unit we want to work with. For example, with the Niño data, if we want to report results in years, we pass in a `dt` of \~1/12.
+
+With `dj`, the matter is more complex. Below, we discuss how `wavelet_transform()` computes the set of scale parameters used; `dj` determines the spacing between them. The smaller `dj`, the closer together the scales used. What makes for a useful setting depends on the width (in Fourier space) of the wavelet function in question. Citing Torrence and Compo:
+
+> For the Morlet wavelet, a $\delta_j$ of about 0.5 is the largest value that still gives adequate sampling in scale, while for the other wavelet functions, a larger value can be used.
 
 ## Scales
 
@@ -31,15 +39,13 @@ $$
 J = \frac{1}{\delta_j} log_2(\frac{N \delta_t}{s_0})  \ \ \ \ \ \ \ \ \ \ \ (TC \ eq. 10)
 $$
 
-Here $s_0$ is the smallest *resolvable* scale. This is done by `wavelet_transform()` internally, the strategy being derived from the Nykvist theorem: To be resolvable, $s_0$ needs to be chosen so that the equivalent Fourier period amounts to approximately $2 \delta_t$.
+Here $s_0$ is the smallest *resolvable* scale. This is computed by `wavelet_transform()` internally, the strategy being derived from the Nykvist theorem: To be resolvable, $s_0$ needs to be chosen so that the equivalent Fourier period amounts to approximately $2 \delta_t$.
 
 ## Cone of influence
 
-Since the Fourier Transform assumes the data to be periodic, errors will occur at the start and the end of the series. The *cone of influence* (COI) is defined making use of the construct of $e$-folding time. In general,$e$-folding time is defined as the time it takes for a quantity to decrease to $\frac{1}{e}$ of its previous value.
-Here, $e$-folding time is computed, _for each scale_, for the autocorrelation of wavelet power. Concretely, it is chosen so that wavelet power for a discontinuity at an edge drops by a factor of $\frac{1}{e^2}$. This ensures that edge effects are negligible beyond this point.
+Since the Fourier Transform assumes the data to be periodic, errors will occur at the start and the end of the series. The *cone of influence* (COI) is defined making use of the construct of $e$-folding time. In general, $e$-folding time is defined as the time it takes for a quantity to decrease to $\frac{1}{e}$ of its previous value. Here, $e$-folding time is computed, *for each scale*, for the autocorrelation of wavelet power. Concretely, it is chosen so that wavelet power for a discontinuity at an edge drops by a factor of $\frac{1}{e^2}$. This ensures that edge effects are negligible beyond this point.
 
-The desired time can be calculated solving for $\tau$ in the following equation:
-$$
+The desired time can be calculated solving for $\tau$ in the following equation: $$
 Y_0(\tau)^2 / Y_0(0)^2 = 1 / e^2
 $$
 
@@ -51,9 +57,8 @@ $$
 \tau(s) = \sqrt{2 s}  \ \ \ \ \ \ \ \ \ \ \ (TC \ tbl. 1)
 $$
 
-The COI should always be indicated on a scaleogram. Inside the affected region, we can assume that  magnitudes appear artificially reduced.
+The COI should always be indicated on a scaleogram. Inside the affected region, we can assume that magnitudes appear artificially reduced.
 
-As Torrence & Combo explain, $\tau$ is also useful in evaluating the ontological status of of a peak in the scaleogram:
+As Torrence & Compo explain, $\tau$ is also useful in evaluating the ontological status of of a peak in the scaleogram:
+
 > The size of the COI at each scale also gives a measure of the decorrelation time for a single spike in the time series. By comparing the width of a peak in the wavelet power spectrum with this decorrelation time, one can distinguish between a spike in the data (possibly due to random noise) and a harmonic component at the equivalent Fourier frequency.
-
-

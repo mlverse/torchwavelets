@@ -52,7 +52,7 @@ save `m`
 \if{html}{\out{<a id="method-Paul-time"></a>}}
 \if{latex}{\out{\hypertarget{method-Paul-time}{}}}
 \subsection{Method \code{time()}}{
-Value of the wavelet at the given time
+value of the wavelet at the given time
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Paul$time(t, s = 1)}\if{html}{\out{</div>}}
 }
@@ -60,12 +60,12 @@ Value of the wavelet at the given time
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{t}}{Time. If `s` is not specified, this can be used as the
+\item{\code{t}}{time. If `s` is not specified, this can be used as the
 non-dimensional time t/s.}
 
-\item{\code{s}}{Scaling factor. Default is 1.}
+\item{\code{s}}{scaling factor. Default is 1.}
 
-\item{\code{complete}}{Whether to use the complete or the standard version.}
+\item{\code{complete}}{whether to use the complete or the standard version.}
 }
 \if{html}{\out{</div>}}
 }
@@ -74,7 +74,7 @@ non-dimensional time t/s.}
 \if{html}{\out{<a id="method-Paul-fourier_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Paul-fourier_period}{}}}
 \subsection{Method \code{fourier_period()}}{
-Equivalent Fourier period
+equivalent Fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Paul$fourier_period(s)}\if{html}{\out{</div>}}
 }
@@ -82,7 +82,7 @@ Equivalent Fourier period
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{s}}{Scaling factor}
+\item{\code{s}}{scaling factor}
 }
 \if{html}{\out{</div>}}
 }
@@ -91,7 +91,7 @@ Equivalent Fourier period
 \if{html}{\out{<a id="method-Paul-scale_from_period"></a>}}
 \if{latex}{\out{\hypertarget{method-Paul-scale_from_period}{}}}
 \subsection{Method \code{scale_from_period()}}{
-Compute the scale from the fourier period
+compute the scale from the fourier period
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Paul$scale_from_period(period)}\if{html}{\out{</div>}}
 }
@@ -108,7 +108,7 @@ Compute the scale from the fourier period
 \if{html}{\out{<a id="method-Paul-frequency"></a>}}
 \if{latex}{\out{\hypertarget{method-Paul-frequency}{}}}
 \subsection{Method \code{frequency()}}{
-Frequency representation of wavelet
+frequency representation of wavelet
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Paul$frequency(w, s = 1)}\if{html}{\out{</div>}}
 }
@@ -119,7 +119,7 @@ Frequency representation of wavelet
 \item{\code{w}}{angular frequency. If `s` is not specified, i.e. set to 1,
 this can be used as the non-dimensional angular frequency w * s.}
 
-\item{\code{s}}{the scaling factor. Default is 1.}
+\item{\code{s}}{scaling factor. Default is 1.}
 }
 \if{html}{\out{</div>}}
 }
@@ -128,7 +128,7 @@ this can be used as the non-dimensional angular frequency w * s.}
 \if{html}{\out{<a id="method-Paul-coi"></a>}}
 \if{latex}{\out{\hypertarget{method-Paul-coi}{}}}
 \subsection{Method \code{coi()}}{
-The e-folding time for the autocorrelation of wavelet
+the e-folding time for the autocorrelation of wavelet
 power at each scale, i.e. the time scale over which an edge
 effect decays by a factor of 1/e^2.
 \subsection{Usage}{
@@ -138,7 +138,7 @@ effect decays by a factor of 1/e^2.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{s}}{Scaling factor}
+\item{\code{s}}{scaling factor}
 }
 \if{html}{\out{</div>}}
 }

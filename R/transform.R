@@ -5,6 +5,8 @@
 # https://github.com/QUVA-Lab/PyTorchWavelets/blob/master/wavelets_pytorch/network.py
 # Comments/documentation ported/adapted correspondingly.
 #
+# COI calculation ported from https://github.com/aaren/wavelets/blob/master/wavelets/transform.py#L550.
+#
 #######################################################################################
 
 
@@ -26,6 +28,9 @@
 #' @importFrom torch nn_conv1d
 #' @importFrom torch torch_arange
 #' @importFrom torch torch_abs
+#' @importFrom torch torch_hstack
+#' @importFrom torch torch_where
+#' @importFrom torch torch_long
 #'
 #' @param signal_length length of the signal to be processed
 #' @param dt sample spacing, default is 1
@@ -158,6 +163,28 @@ wavelet_transform <- nn_module(
   },
   fourier_frequencies = function() {
     torch_reciprocal(self$fourier_periods())
+  },
+  # returns a pair of tensors that describes the cone of influence as a curve of time and scales
+  coi = function(t_min, t_max) {
+    w_coi <- self$wavelet$coi(self$scales)
+    t_mid <- t_min + (t_max - t_min) / 2
+
+    c_1 <- t_min + w_coi
+    c_2 <- t_max - w_coi
+    C <- torch_hstack(list(
+      c_1[(torch_where(c_1 < t_mid)[[1]] + 1)$to(dtype = torch_long())], ############### !
+      c_2[(torch_where(c_2 > t_mid)[[1]] + 1)$to(dtype = torch_long())])
+    )
+    S <- torch_hstack(list(
+      self$scales[(torch_where(c_1 < t_mid)[[1]] + 1)$to(dtype = torch_long())], ############### !
+      self$scales[(torch_where(c_2 > t_mid)[[1]] + 1)$to(dtype = torch_long())])
+    )
+
+    iC <- C$to(dtype = torch_long())$argsort()
+    sC <- C[iC]
+    sS <- S[iC]
+    list(sC, sS)
+
   },
   complex_wavelet = function(value) {
     if (missing(value)) {
