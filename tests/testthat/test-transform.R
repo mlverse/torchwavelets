@@ -8,13 +8,14 @@ test_that("wavelet_transform fields and methods (using Morlet wavelet)", {
 
   t <- torch::torch_linspace(0, 10, floor(10 / dt))
   frequencies <- torch::torch_tensor(runif(batch_size, -0.5, 2.0))
+  # for transformation in time
   batch <- torch::torch_zeros(batch_size, length(t))
   for (f in 1:length(frequencies)) {
     batch[f, ] <- torch::torch_sin(2 * pi * frequencies[f] * t)
   }
 
   wavelet <- Morlet$new()
-  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
+  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet, fourier = FALSE)
 
   ### test access to wavelet methods ###
   x <- wtf$scale_from_period(wtf$fourier_period(s = 1))
@@ -136,28 +137,57 @@ test_that("wavelet_transform fields and methods (using Morlet wavelet)", {
   y <- 0.1240
   expect_equal(x, y, tolerance = 1e-4)
 
-  ### test cwt ###
+  ### test cwt in time (using convd_1d()) ###
   b <- batch$view(c(dim(batch)[1], 1, dim(batch)[2]))
-  x <- wtf$cwt(b)$shape
+  x <- wtf$cwt_time(b)$shape
   y <- c(32, 46, 2, 100)
   expect_equal(x, y)
 
-  ### test forward ###
-  x <- c(as.numeric(wtf(batch)$real$mean()), as.numeric(wtf(batch)$real$min()), as.numeric(wtf(batch)$real$max()))
+  ### test cwt (delegating to cwt_time) ###
+  x <- c(as.numeric(wtf$cwt(batch)$real$mean()), as.numeric(wtf$cwt(batch)$real$min()), as.numeric(wtf$cwt(batch)$real$max()))
   y <- c(-0.0026392932315294822, -4.567781448364258, 4.5740203857421875)
   expect_equal(x, y, tolerance = 1e-1)
-  x <- c(as.numeric(wtf(batch)$imag$mean()), as.numeric(wtf(batch)$imag$min()), as.numeric(wtf(batch)$imag$max()))
+  x <- c(as.numeric(wtf$cwt(batch)$imag$mean()), as.numeric(wtf$cwt(batch)$imag$min()), as.numeric(wtf$cwt(batch)$imag$max()))
   y <- c(-0.008708901385664894, -4.636211395263672, 4.621674537658691)
   expect_equal(x, y, tolerance = 1e-1)
-  x <- c(as.numeric(wtf(batch)$abs()$mean()), as.numeric(wtf(batch)$abs()$min()), as.numeric(wtf(batch)$abs()$max()))
+  x <- c(as.numeric(wtf$cwt(batch)$abs()$mean()), as.numeric(wtf$cwt(batch)$abs()$min()), as.numeric(wtf$cwt(batch)$abs()$max()))
   y <- c(0.3943239924987704, 7.787456582134456e-09, 4.649060297586245)
   expect_equal(x, y, tolerance = 1e-1)
 
   ### test power ###
   x <- as.numeric(wtf$power(batch)$mean())
-  y <- as.numeric(wtf(batch)$abs()$square()$mean())
+  y <- as.numeric(wtf$cwt(batch)$abs()$square()$mean())
   expect_equal(x, y)
+
+  ### test cwt in frequency ###
+  # for transformation in frequency
+  b <- batch[1, ]
+  wtf <- wavelet_transform(length(b), dt, dj, wavelet)
+
+  fft_size <- floor(2 ^ ceiling(log2(length(b)))) ##  signal_length
+  fft_signal <- torch_fft_fft(b, n = fft_size)
+
+  fftfreqs <- torch:::torch_fft_fftfreq(fft_size, d = dt) * 2 * pi
+  norm <- (2 * pi * wtf$scales / dt) ^ .5
+  w <- Morlet$new()
+  wavelet_vals <- norm$unsqueeze(2) * w$frequency(fftfreqs, wtf$scales$unsqueeze(2))
+
+  x <- fftfreqs * wtf$scales$unsqueeze(2)
+
+  Hw <- torch_where(fftfreqs < 0, 0, 1)
+  f <- pi^-.25 * Hw * torch_exp((-(x - 6)^2) / 2)
+  f
+
+
+  x <- wtf$cwt_freq(b)$shape
+  y <- c(32, 46, 2, 100)
+  expect_equal(x, y)
+
+  ### test cwt (delegating to cwt_freq) ###
+
 })
+
+
 
 test_that("wavelet_transform, Mexican Hat", {
   # expected values computed from
