@@ -31,6 +31,9 @@
 #' @importFrom torch torch_hstack
 #' @importFrom torch torch_where
 #' @importFrom torch torch_long
+#' @importFrom torch torch_fft_fft
+#' @importFrom torch torch_fft_fftfreq
+#' @importFrom torch torch_fft_ifft
 #'
 #' @param signal_length length of the signal to be processed
 #' @param dt sample spacing, default is 1
@@ -112,22 +115,20 @@ WaveletTransform <- R6::R6Class(
       results
     },
     cwt_freq = function(x) {
-      # Takes a batch of signals and convolves each signal with all elements
-      # in the filter bank. After convolving the entire filter bank, the method returns
-      # a tensor of shape `[batch_size,n_scales,1 or 2,T]` (the next-to-last dimension
-      # being of size 1 for real wavelets, 2 for complex ones; and T being the transformed values).
-      results <- list()
-      for (i in 1:length(self$convs)) {
-        results[[i]] <- self$convs[[i]](x)
-      }
-      results <- torch_stack(results) # [n_scales,batch_size,2,t]
-      results <- results$permute(c(2, 1, 3, 4)) # [batch_size,n_scales,2,t]
-      results
+      # tbd
+      fft_signal <- torch_fft_fft(x)
+      fftfreqs <- torch:::torch_fft_fftfreq(length(fft_signal), d = self$dt) * 2 * pi #!!!!
+      norm <- (2 * pi * self$scales / self$dt) ^ .5
+      print(fftfreqs)
+      print(self$scales$unsqueeze(2))
+      wavelet_fourier <- norm$unsqueeze(2) * self$wavelet$frequency(fftfreqs, self$scales$unsqueeze(2))
+      out <- torch_fft_ifft(fft_signal$unsqueeze(1) * wavelet_fourier$conj())
+      out
     },
     cwt = function(x) {
       if (!self$fourier) {
-        num_examples <- x$shape[1]
-        if (x$ndim == 1) {
+        num_examples <- x$ndim
+        if (num_examples == 1) {
           # Prepend batch and chn_in dimensions
           # [signal_length] => [batch_size,1,signal_length]
           x <- x$unsqueeze(1)$unsqueeze(1)

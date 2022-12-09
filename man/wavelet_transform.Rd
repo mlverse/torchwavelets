@@ -2,14 +2,15 @@
 % Please edit documentation in R/transform.R
 \name{wavelet_transform}
 \alias{wavelet_transform}
-\title{Continuous wavelet transform as described in Torrence and Compo,
+\title{Wrapper constructor for the continuous wavelet transform as described in Torrence and Compo,
 "A Practical Guide to Wavelet Analysis".}
 \usage{
 wavelet_transform(
   signal_length,
   dt = 1,
   dj = 0.125,
-  wavelet = torchwavelets::Morlet$new()
+  wavelet = torchwavelets::Morlet$new(),
+  fourier = TRUE
 )
 }
 \arguments{
@@ -19,17 +20,12 @@ wavelet_transform(
 
 \item{dj}{scale distribution parameter, default is 0.125}
 
-\item{wavelet}{wavelet object
-Given a list of temporal 1D filters of variable size, this method
-creates a list of `nn_conv1d()` objects that collectively form the filter bank.}
+\item{wavelet}{wavelet object}
 }
 \description{
-Continuous wavelet transform as described in Torrence and Compo,
+Wrapper constructor for the continuous wavelet transform as described in Torrence and Compo,
 "A Practical Guide to Wavelet Analysis".
 }
-\details{
-Like _QUVA-Lab/PyTorchWavelets_, this does not use the FFT,
-but a filter bank consisting of `torch::nn_conv1d()` modules.
-The code expects input sequences to be one-dimensional. It works with batches
-of signals.
+\seealso{
+WaveletTransform
 }

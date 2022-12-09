@@ -77,9 +77,9 @@ Morlet <- R6::R6Class(
     frequency = function(w, s = 1) {
       x <- w * s
       # Heaviside mock
-      Hw <- if (w <= 0) 0 else 1
+      Hw <- torch_where(w < 0, 0, 1)
       f <- pi^-.25 * Hw * torch_exp((-(x - self$w0)^2) / 2)
-      as.numeric(f)
+      f
     },
     #' @description The e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the timescale over which an edge
@@ -164,7 +164,7 @@ DerivativeOfGaussian <- R6::R6Class(
       const = -torch_complex(0, 1)^m / gamma(m + 0.5)^.5
       output <- x^m * torch_exp(-x^2 / 2)
       output <- output * const
-      as.numeric(output)
+      output
     },
     #' @description The e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the timescale over which an edge
@@ -232,7 +232,7 @@ Paul <- R6::R6Class(
       const <- 2^m / (m * factorial(2 * m - 1))^ .5
       functional_form <- Hw * (x)^m * torch_exp(-x)
       output <- const * functional_form
-      as.numeric(output)
+      output
     },
     #' @description the e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the time scale over which an edge

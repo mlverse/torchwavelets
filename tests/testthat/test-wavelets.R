@@ -19,9 +19,11 @@ test_that("morlet", {
   y <- 1
   expect_equal(x, y)
 
-  x <- m$frequency(w = pi)
-  y <- 0.012633178008637279
-  expect_equal(x, y)
+  w <- torch::torch_tensor(c(0.0000, 0.6283, 1.2566))
+  s <- torch::torch_tensor(c(0.1936, 0.2111))$unsqueeze(2)
+  x <- m$frequency(w = w, s = s)
+  y <- torch::torch_tensor(c(0.00000000e+00, 2.35592526e-08, 4.78063221e-08, 0.00000000e+00, 2.51307511e-08, 5.42449175e-08))$view(c(2, 3))
+  expect_true(torch::torch_allclose(x, y, atol = 1e-7))
 
   x <- m$coi(s = 1)
   y <- 1.4142135623730951
@@ -47,9 +49,11 @@ test_that("Paul", {
 
   expect_error(p$scale_from_period(m$fourier_period(s = 1)))
 
-  x <- p$frequency(w = pi)
-  y <- 0.47434885401835936
-  expect_equal(x, y, tolerance = 1e-7)
+  w <- torch::torch_tensor(c(0.0000, 0.6283, 1.2566))
+  s <- torch::torch_tensor(c(0.1936, 0.2111))$unsqueeze(2)
+  x <- p$frequency(w = w, s = s)
+  y <- torch::torch_tensor(c(0.00000000e+00, 2.18442569e-05, 3.09478272e-04, 0.00000000e+00, 3.05417291e-05, 4.27968034e-04))$view(c(2, 3))
+  expect_true(torch::torch_allclose(x, y, atol = 1e-7))
 
   x <- p$coi(s = 1)
   y <- 0.7071067811865475
@@ -73,9 +77,11 @@ test_that("Derivative of Gaussian", {
 
   expect_error(p$scale_from_period(m$fourier_period(s = 1)))
 
-  x <- d$frequency(w = pi)
-  y <- 0.06156363866852903
-  expect_equal(x, y, tolerance = 1e-7)
+  w <- torch::torch_tensor(c(0.0000, 0.6283, 1.2566))
+  s <- torch::torch_tensor(c(0.1936, 0.2111))$unsqueeze(2)
+  x <- d$frequency(w = w, s = s)$real
+  y <- torch::torch_tensor(c(0, 0.01273837, 0.04983507, 0, 0.0151242, 0.05892131))$view(c(2, 3))
+  expect_true(torch::torch_allclose(x, y, atol = 1e-7))
 
   x <- d$coi(s = 1)
   y <- 1.4142135623730951

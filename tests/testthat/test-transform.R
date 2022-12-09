@@ -160,30 +160,22 @@ test_that("wavelet_transform fields and methods (using Morlet wavelet)", {
   expect_equal(x, y)
 
   ### test cwt in frequency ###
-  # for transformation in frequency
+  # save time-domain results for comparison
   b <- batch[1, ]
+  comp <- wtf$cwt(b)
+
   wtf <- wavelet_transform(length(b), dt, dj, wavelet)
+  out <- wtf$cwt(b)
 
-  fft_size <- floor(2 ^ ceiling(log2(length(b)))) ##  signal_length
-  fft_signal <- torch_fft_fft(b, n = fft_size)
-
-  fftfreqs <- torch:::torch_fft_fftfreq(fft_size, d = dt) * 2 * pi
-  norm <- (2 * pi * wtf$scales / dt) ^ .5
-  w <- Morlet$new()
-  wavelet_vals <- norm$unsqueeze(2) * w$frequency(fftfreqs, wtf$scales$unsqueeze(2))
-
-  x <- fftfreqs * wtf$scales$unsqueeze(2)
-
-  Hw <- torch_where(fftfreqs < 0, 0, 1)
-  f <- pi^-.25 * Hw * torch_exp((-(x - 6)^2) / 2)
-  f
-
-
-  x <- wtf$cwt_freq(b)$shape
-  y <- c(32, 46, 2, 100)
-  expect_equal(x, y)
-
-  ### test cwt (delegating to cwt_freq) ###
+  x <- c(as.numeric(out$real$mean()), as.numeric(out$real$min()), as.numeric(out$real$max()))
+  y <- c(as.numeric(comp$real$mean()), as.numeric(comp$real$min()), as.numeric(comp$real$max()))
+  expect_equal(x, y, tolerance = 1e-1)
+  x <- c(as.numeric(out$imag$mean()), as.numeric(out$imag$min()), as.numeric(out$imag$max()))
+  y <- c(as.numeric(comp$imag$mean()), as.numeric(comp$imag$min()), as.numeric(comp$imag$max()))
+  expect_equal(x, y, tolerance = 1e-1)
+  x <- c(as.numeric(out$abs()$mean()), as.numeric(out$abs()$min()), as.numeric(out$abs()$max()))
+  y <- c(as.numeric(comp$abs()$mean()), as.numeric(comp$abs()$min()), as.numeric(comp$abs()$max()))
+  expect_equal(x, y, tolerance = 1e-1)
 
 })
 
@@ -205,16 +197,28 @@ test_that("wavelet_transform, Mexican Hat", {
   }
 
   wavelet <- MexicanHat$new()
-  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
-  transform <- wtf(batch)
+  wtf_time <- wavelet_transform(dim(batch)[2], dt, dj, wavelet, fourier = FALSE)
+  transform_time <- wtf_time$cwt(batch)
 
-  x <- transform$shape
+  x <- transform_time$shape
   y <- c(32, 62, 100)
   expect_equal(x, y)
 
-  x <- c(as.numeric(transform$mean()), as.numeric(transform$min()), as.numeric(transform$max()))
+  x <- c(as.numeric(transform_time$mean()), as.numeric(transform_time$min()), as.numeric(transform_time$max()))
   y <- c(-0.01580384674525963, -6.3885040283203125, 6.596841335296631)
   expect_equal(x, y, tolerance = 1e-1)
+
+  wtf_freq <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
+  transform_freq <- wtf_freq$cwt(batch)
+
+  x <- transform_freq$shape
+  y <- c(62, 100)
+  expect_equal(x, y)
+
+  x <- c(as.numeric(transform_freq$mean()), as.numeric(transform_freq$min()), as.numeric(transform_freq$max()))
+  y <- c(-0.01580384674525963, -6.3885040283203125, 6.596841335296631)
+  expect_equal(x, y, tolerance = 1e-1)
+
 })
 
 test_that("wavelet_transform, Paul wavelet", {
