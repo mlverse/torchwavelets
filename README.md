@@ -2,9 +2,9 @@
 
 ## Wavelet Analysis as per Torrence and Compo, 1998
 
-This is an implementation of the wavelet analysis technique explained in Torrence and Compo's 1998 paper "A Practical Guide to Wavelet Analysis", which set a standard and is often cited as a primary reference. The code is a port to R of Tom Runia's Pytorch implementation, <https://github.com/QUVA-Lab/PyTorchWavelets/>, itself based on Aaron O'Leary's <https://github.com/aaren/wavelets/>.
+This is an implementation of the wavelet analysis technique explained in Torrence and Compo's 1998 paper "A Practical Guide to Wavelet Analysis", which set a standard and is often cited as a primary reference. The code is mostly a port to R of Tom Runia's PyTorch implementation, <https://github.com/QUVA-Lab/PyTorchWavelets/>, itself based on Aaron O'Leary's <https://github.com/aaren/wavelets/>.
 
-Following Runia, we use `nn_conv1()` modules to compute the wavelet transform. On larger-size signals, this will not be fast, *unless* you have a GPU. We are therefore considering to add an alternative implementation that follows the common strategy of executing the computation in the Fourier domain.
+We also provide an alternative implementation that, instead of making use of neural network modules in the time domain, follows the "classical" strategy of performing the analysis in the Fourier domain. *This method is actually the default,* since with long sequences, you need a GPU to achieve good time-domain performance. See the code example below for how to switch between implementations.
 
 ## Niño example
 
@@ -19,6 +19,9 @@ nino_data <- readr::read_table(
 anomaly <- nino_data[ , 3]%>% unlist() %>% as.numeric() %>% torch_tensor()
 dt <- nino_data[ , 1] %>% unlist() %>% as.numeric() %>% diff() %>% mean()
 
+# this will run the analysis in the frequency domain
+# to instead use the neural-network implementation, do
+# wtf <- wavelet_transform(length(anomaly), dt = dt, fourier = FALSE)
 wtf <- wavelet_transform(length(anomaly), dt = dt)
 power_spectrum <- wtf$power(anomaly)
 
