@@ -25,6 +25,8 @@ where r is the sampling rate.
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
+\item{\code{is_complex}}{whether the wavelet representation in the time domain is complex}
+
 \item{\code{w0}}{the non-dimensional frequency constant.}
 
 \item{\code{C_d}}{value of C_d from TC98}

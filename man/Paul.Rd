@@ -15,6 +15,8 @@ The Paul wavelet is defined as
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
+\item{\code{is_complex}}{whether the wavelet representation in the time domain is complex}
+
 \item{\code{m}}{the order of the derivative}
 }
 \if{html}{\out{</div>}}

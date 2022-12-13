@@ -21,6 +21,8 @@ wavelet_transform(
 \item{dj}{scale distribution parameter, default is 0.125}
 
 \item{wavelet}{wavelet object}
+
+\item{fourier}{whether to run in the frequency domain}
 }
 \description{
 Wrapper constructor for the continuous wavelet transform as described in Torrence and Compo,

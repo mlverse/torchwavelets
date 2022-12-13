@@ -33,6 +33,8 @@
 Morlet <- R6::R6Class(
   "Morlet",
   public = list(
+    #' @field is_complex whether the wavelet representation in the time domain is complex
+    is_complex = TRUE,
     #' @field w0 the non-dimensional frequency constant.
     w0 = NULL,
     #' @field C_d value of C_d from TC98
@@ -117,6 +119,8 @@ Morlet <- R6::R6Class(
 DerivativeOfGaussian <- R6::R6Class(
   "Derivative of Gaussian",
   public = list(
+    #' @field is_complex whether the wavelet representation in the time domain is complex
+    is_complex = FALSE,
     #' @field m the order of the derivative
     m = NULL,
     #' @field C_d value of C_d from TC98
@@ -189,6 +193,8 @@ DerivativeOfGaussian <- R6::R6Class(
 Paul <- R6::R6Class(
   "Paul",
   public = list(
+    #' @field is_complex whether the wavelet representation in the time domain is complex
+    is_complex = TRUE,
     #' @field m the order of the derivative
     m = NULL,
     #' @description save `m`
@@ -227,10 +233,16 @@ Paul <- R6::R6Class(
       m <- self$m
       x <- w * s
       # Heaviside mock
-      Hw <- 0.5 * (sign(x) + 1)
+      # https://github.com/aaren/wavelets/blob/a213d7c307e0a6b5a40cc648d4e3f69c2e77c12b/wavelets/wavelets.py#L213
+      # Hw = 0.5 * (np.sign(x) + 1)
+      # functional_form = Hw * (x) ** m * np.exp(-x)
+      # explodes for negative x
+      # Hw <- 0.5 * (sign(x) + 1)
+      # functional_form <- Hw * (x)^m * torch_exp(-x)
+      Hw <- torch_where(w < 0, 0, 1)
       # pre-factor
       const <- 2^m / (m * factorial(2 * m - 1))^ .5
-      functional_form <- Hw * (x)^m * torch_exp(-x)
+      functional_form <- x^m * torch_exp(Hw * -x)
       output <- const * functional_form
       output
     },

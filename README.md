@@ -55,7 +55,7 @@ ggplot(df) +
   #scale_y_continuous(trans = c("log10", "reverse")) + 
   scale_y_continuous(
     trans = scales::compose_trans(scales::log2_trans(), scales::reverse_trans()),
-    breaks = c(0.5, 1, 2, 4, 8, 16, 32, 64),
+    breaks = labeled_scales,
     limits = c(64, 0.5),
     expand = c(0,0),
     sec.axis = dup_axis(
