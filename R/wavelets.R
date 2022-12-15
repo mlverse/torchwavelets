@@ -189,6 +189,9 @@ DerivativeOfGaussian <- R6::R6Class(
 #'
 #' @param m the order
 #'
+#' @importFrom torch torch_float32
+#' @importFrom torch torch_float64
+#'
 #' @export
 Paul <- R6::R6Class(
   "Paul",
@@ -232,11 +235,12 @@ Paul <- R6::R6Class(
     frequency = function(w, s = 1) {
       m <- self$m
       x <- w * s
+      x <- x$to(dtype = torch_float64())
       Hw <- 0.5 * (sign(x) + 1)
       functional_form <- Hw * x^m * torch_exp(-x)
       const <- 2^m / (m * factorial(2 * m - 1))^ .5
       output <- const * functional_form
-      output
+      output$to(dtype = torch_float32())
     },
     #' @description the e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the time scale over which an edge
