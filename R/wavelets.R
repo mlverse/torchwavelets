@@ -233,7 +233,7 @@ Paul <- R6::R6Class(
       m <- self$m
       x <- w * s
       Hw <- 0.5 * (sign(x) + 1)
-      functional_form <- Hw * (x)^m * torch_exp(-x)
+      functional_form <- Hw * x^m * torch_exp(-x)
       const <- 2^m / (m * factorial(2 * m - 1))^ .5
       output <- const * functional_form
       output
