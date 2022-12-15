@@ -39,6 +39,7 @@
 #' @importFrom torch torch_fft_fft
 #' @importFrom torch torch_fft_fftfreq
 #' @importFrom torch torch_fft_ifft
+#' @importFrom torch cuda_is_available
 #'
 #' @export
 
@@ -106,7 +107,8 @@ WaveletTransform <- R6::R6Class(
         padding <- self$get_padding(padding_type, filt_size)
         conv <- nn_conv1d(1, chn_out, kernel_size = filt_size, padding = padding, bias = FALSE)
         conv$weight$requires_grad_(FALSE)
-        conv$weight[, , ] <- filt_weights
+        if (cuda_is_available()) conv <- conv$cuda()
+        conv$weight[ , , ] <- filt_weights
         filter_bank[[i]] <- conv
       }
       filter_bank
@@ -123,12 +125,14 @@ WaveletTransform <- R6::R6Class(
       # being of size 1 for real wavelets, 2 for complex ones; and T being the transformed values).
       if (is.null(self$filters)) stop("To compute the transform in the time domain, need to instantiate WaveletTransform passing fourier = FALSE")
       results <- list()
+      if (cuda_is_available()) x <- x$cuda()
       for (i in 1:length(self$convs)) {
         results[[i]] <- self$convs[[i]](x)
       }
       results <- torch_stack(results) # [n_scales,batch_size,2,t]
       results <- results$permute(c(2, 1, 3, 4)) # [batch_size,n_scales,2,t]
-      results
+      results <- results$detach()
+      results$cpu()
     },
     #' @description Takes a single signal and computes the wavelet transform in the Fourier domain.
     #' The returned value has shape `[n_scales, T]`, where T (the transformed values)

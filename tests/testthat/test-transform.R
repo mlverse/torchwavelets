@@ -218,7 +218,7 @@ test_that("wavelet_transform, Mexican Hat", {
 
   x <- c(as.numeric(out$mean()), as.numeric(out$min()), as.numeric(out$max()))
   y <- c(as.numeric(comp$mean()), as.numeric(comp$min()), as.numeric(comp$max()))
-  expect_equal(x, y, tolerance = 1e-0)
+  expect_equal(x, y, tolerance = 1.1)
 
 })
 

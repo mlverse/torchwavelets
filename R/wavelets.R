@@ -232,17 +232,9 @@ Paul <- R6::R6Class(
     frequency = function(w, s = 1) {
       m <- self$m
       x <- w * s
-      # Heaviside mock
-      # https://github.com/aaren/wavelets/blob/a213d7c307e0a6b5a40cc648d4e3f69c2e77c12b/wavelets/wavelets.py#L213
-      # Hw = 0.5 * (np.sign(x) + 1)
-      # functional_form = Hw * (x) ** m * np.exp(-x)
-      # explodes for negative x
-      # Hw <- 0.5 * (sign(x) + 1)
-      # functional_form <- Hw * (x)^m * torch_exp(-x)
-      Hw <- torch_where(w < 0, 0, 1)
-      # pre-factor
+      Hw <- 0.5 * (sign(x) + 1)
+      functional_form <- Hw * (x)^m * torch_exp(-x)
       const <- 2^m / (m * factorial(2 * m - 1))^ .5
-      functional_form <- x^m * torch_exp(Hw * -x)
       output <- const * functional_form
       output
     },
