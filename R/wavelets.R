@@ -27,7 +27,7 @@
 #' @importFrom torch torch_exp
 #' @param w0 the non-dimensional frequency constant. If this is set too low,
 #' then the wavelet does not sample very well: a value higher than 5 should be ok.
-#' Terrence and Compo set it to 6.
+#' Torrence and Compo set it to 6.
 #'
 #' @export
 Morlet <- R6::R6Class(

@@ -239,12 +239,12 @@ WaveletTransform <- R6::R6Class(
       c_1 <- t_min + w_coi
       c_2 <- t_max - w_coi
       C <- torch_hstack(list(
-        c_1[(torch_where(c_1 < t_mid)[[1]] + 1)$to(dtype = torch_long())], ############### !
-        c_2[(torch_where(c_2 > t_mid)[[1]] + 1)$to(dtype = torch_long())]
+        c_1[(torch_where(c_1 < t_mid)[[1]])$to(dtype = torch_long())],
+        c_2[(torch_where(c_2 > t_mid)[[1]])$to(dtype = torch_long())]
       ))
       S <- torch_hstack(list(
-        self$scales[(torch_where(c_1 < t_mid)[[1]] + 1)$to(dtype = torch_long())], ############### !
-        self$scales[(torch_where(c_2 > t_mid)[[1]] + 1)$to(dtype = torch_long())]
+        self$scales[(torch_where(c_1 < t_mid)[[1]])$to(dtype = torch_long())],
+        self$scales[(torch_where(c_2 > t_mid)[[1]])$to(dtype = torch_long())]
       ))
 
       iC <- C$to(dtype = torch_long())$argsort()
