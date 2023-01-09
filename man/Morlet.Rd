@@ -59,7 +59,7 @@ save `w0` (and possibly set `C_d`)
 \describe{
 \item{\code{w0}}{the non-dimensional frequency constant. If this is set too low,
 then the wavelet does not sample very well: a value higher than 5 should be ok.
-Terrence and Compo set it to 6.}
+Torrence and Compo set it to 6.}
 }
 \if{html}{\out{</div>}}
 }

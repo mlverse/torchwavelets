@@ -115,6 +115,8 @@ Morlet <- R6::R6Class(
 #'
 #' @param m the order of the derivative
 #'
+#' @importFrom calculus hermite
+#'
 #' @export
 DerivativeOfGaussian <- R6::R6Class(
   "Derivative of Gaussian",
