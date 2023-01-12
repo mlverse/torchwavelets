@@ -25,6 +25,9 @@ For Hermite polynomials, see http://en.wikipedia.org/wiki/Hermite_polynomial.
 Here, we want the "probabilists" Hermite polynomial (He_n),
 which may be computed using `calculus::hermite`.
 }
+\section{Super class}{
+\code{\link[torchwavelets:Wavelet]{torchwavelets::Wavelet}} -> \code{Derivative of Gaussian}
+}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{

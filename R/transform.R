@@ -64,7 +64,11 @@ WaveletTransform <- R6::R6Class(
       self$signal_length <- signal_length
       self$dt <- dt
       self$dj <- dj
-      self$wavelet <- wavelet
+      if (is.null(wavelet)) {
+        self$wavelet <- torchwavelets::Morlet$new()
+      } else {
+        self$wavelet <- wavelet
+      }
       self$fourier <- fourier
       self$scale_minimum <- self$compute_minimum_scale()
       self$scales <- self$compute_optimal_scales()

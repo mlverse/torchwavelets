@@ -6,6 +6,50 @@
 #
 #######################################################################################
 
+#' Abstract wavelet base class, guaranteeing all required methods are implemented.
+#'
+#' @export
+Wavelet <- R6::R6Class(
+  "Wavelet",
+  public = list(
+    #' @description use this to set any wavelet-specific parameters
+    initialize = function() {
+
+    },
+    #' @description value of the wavelet at the given times
+    #' @param t time. If `s` is not specified, this can be used as the non-dimensional
+    #' time t/s.
+    #' @param s scaling factor. Default is 1.
+    #' @param ... additional wavelet-specific parameters
+    time = function(t, s = 1, ...) {
+      stop("Not implemented")
+    },
+    #' @description equivalent Fourier period
+    #' @param s scaling factor
+    fourier_period = function(s) {
+      stop("Not implemented")
+    },
+    #' @description compute the scale from the fourier period
+    #' @param p Fourier period
+    scale_from_period = function(p) {
+      stop("Not implemented")
+    },
+    #' @description frequency representation
+    #' @param w angular frequency. If `s` is not specified, i.e. set to 1,
+    #' this can be used as the non-dimensional angular frequency w * s.
+    #' @param s the scaling factor. Default is 1.
+    frequency = function(w, s = 1) {
+      stop("Not implemented")
+    },
+    #' @description The e-folding time for the autocorrelation of wavelet
+    #' power at each scale, i.e. the timescale over which an edge
+    #' effect decays by a factor of 1/e^2.
+    #' @param s scaling factor
+    coi = function(s) {
+      stop("Not implemented")
+    }
+  )
+)
 
 #' Complex Morlet wavelet, centered at zero.
 #'
@@ -25,6 +69,7 @@
 #'
 #' @importFrom torch torch_complex
 #' @importFrom torch torch_exp
+#'
 #' @param w0 the non-dimensional frequency constant. If this is set too low,
 #' then the wavelet does not sample very well: a value higher than 5 should be ok.
 #' Torrence and Compo set it to 6.
@@ -32,6 +77,7 @@
 #' @export
 Morlet <- R6::R6Class(
   "Morlet",
+  inherit = Wavelet,
   public = list(
     #' @field is_complex whether the wavelet representation in the time domain is complex
     is_complex = TRUE,
@@ -115,11 +161,10 @@ Morlet <- R6::R6Class(
 #'
 #' @param m the order of the derivative
 #'
-#' @importFrom calculus hermite
-#'
 #' @export
 DerivativeOfGaussian <- R6::R6Class(
   "Derivative of Gaussian",
+  inherit = Wavelet,
   public = list(
     #' @field is_complex whether the wavelet representation in the time domain is complex
     is_complex = FALSE,
@@ -197,6 +242,7 @@ DerivativeOfGaussian <- R6::R6Class(
 #' @export
 Paul <- R6::R6Class(
   "Paul",
+  inherit = Wavelet,
   public = list(
     #' @field is_complex whether the wavelet representation in the time domain is complex
     is_complex = TRUE,

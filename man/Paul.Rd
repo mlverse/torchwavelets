@@ -12,6 +12,9 @@ Paul wavelet
 The Paul wavelet is defined as
 \deqn{(2 ** m * i ** m * m!) / (pi * (2 * m)!) * (1 - i * t / s) ** -(m + 1)}
 }
+\section{Super class}{
+\code{\link[torchwavelets:Wavelet]{torchwavelets::Wavelet}} -> \code{Paul}
+}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{

@@ -14,7 +14,7 @@ Continuous wavelet transform as described in Torrence and Compo,
 \details{
 There is a time-domain as well as a Fourier-domain implementation.
 Like _QUVA-Lab/PyTorchWavelets_, the time-domain method uses a filter bank
-consisting of `torch::nn_conv1d()` modules. This implementation will work with
+consisting of [torch::nn_conv1d()] modules. This implementation will work with
 batches of signals. The alternative, spectral-domain multiplication followed by
 the inverse Fourier transform, is the default. For long signals, and when no
 GPU is available, this is the recommended way.
@@ -62,7 +62,7 @@ initialize the main object, and possibly pre-compute required fields.
   signal_length,
   dt = 1,
   dj = 0.125,
-  wavelet = torchwavelets::Morlet$new(),
+  wavelet = NULL,
   fourier = TRUE
 )}\if{html}{\out{</div>}}
 }

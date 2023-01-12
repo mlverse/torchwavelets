@@ -22,6 +22,9 @@ Note that the energy of the returned wavelet is not normalized according to `s`.
 The fundamental frequency of this wavelet in Hz is given by `f = 2*s*w*r / M`,
 where r is the sampling rate.
 }
+\section{Super class}{
+\code{\link[torchwavelets:Wavelet]{torchwavelets::Wavelet}} -> \code{Morlet}
+}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
