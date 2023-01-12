@@ -60,7 +60,7 @@ WaveletTransform <- R6::R6Class(
     #' @param dj scale distribution parameter, default is 0.125
     #' @param wavelet wavelet object
     #' @param fourier whether to run in the frequency domain
-    initialize = function(signal_length, dt = 1, dj = 0.125, wavelet = torchwavelets::Morlet$new(), fourier = TRUE) {
+    initialize = function(signal_length, dt = 1, dj = 0.125, wavelet = NULL, fourier = TRUE) {
       self$signal_length <- signal_length
       self$dt <- dt
       self$dj <- dj
