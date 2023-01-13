@@ -25,9 +25,14 @@ For Hermite polynomials, see http://en.wikipedia.org/wiki/Hermite_polynomial.
 Here, we want the "probabilists" Hermite polynomial (He_n),
 which may be computed using `calculus::hermite`.
 }
+\section{Super class}{
+\code{\link[torchwavelets:Wavelet]{torchwavelets::Wavelet}} -> \code{Derivative of Gaussian}
+}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
+\item{\code{is_complex}}{whether the wavelet representation in the time domain is complex}
+
 \item{\code{m}}{the order of the derivative}
 
 \item{\code{C_d}}{value of C_d from TC98}

@@ -11,8 +11,8 @@ Mexican Hat
 \details{
 This is a derivative of a Gaussian of order 2.
 }
-\section{Super class}{
-\code{torchwavelets::Derivative of Gaussian} -> \code{Mexican Hat}
+\section{Super classes}{
+\code{\link[torchwavelets:Wavelet]{torchwavelets::Wavelet}} -> \code{torchwavelets::Derivative of Gaussian} -> \code{Mexican Hat}
 }
 \section{Methods}{
 \subsection{Public methods}{

@@ -6,6 +6,50 @@
 #
 #######################################################################################
 
+#' Abstract wavelet base class, guaranteeing all required methods are implemented.
+#'
+#' @export
+Wavelet <- R6::R6Class(
+  "Wavelet",
+  public = list(
+    #' @description use this to set any wavelet-specific parameters
+    initialize = function() {
+
+    },
+    #' @description value of the wavelet at the given times
+    #' @param t time. If `s` is not specified, this can be used as the non-dimensional
+    #' time t/s.
+    #' @param s scaling factor. Default is 1.
+    #' @param ... additional wavelet-specific parameters
+    time = function(t, s = 1, ...) {
+      stop("Not implemented")
+    },
+    #' @description equivalent Fourier period
+    #' @param s scaling factor
+    fourier_period = function(s) {
+      stop("Not implemented")
+    },
+    #' @description compute the scale from the fourier period
+    #' @param p Fourier period
+    scale_from_period = function(p) {
+      stop("Not implemented")
+    },
+    #' @description frequency representation
+    #' @param w angular frequency. If `s` is not specified, i.e. set to 1,
+    #' this can be used as the non-dimensional angular frequency w * s.
+    #' @param s the scaling factor. Default is 1.
+    frequency = function(w, s = 1) {
+      stop("Not implemented")
+    },
+    #' @description The e-folding time for the autocorrelation of wavelet
+    #' power at each scale, i.e. the timescale over which an edge
+    #' effect decays by a factor of 1/e^2.
+    #' @param s scaling factor
+    coi = function(s) {
+      stop("Not implemented")
+    }
+  )
+)
 
 #' Complex Morlet wavelet, centered at zero.
 #'
@@ -25,14 +69,18 @@
 #'
 #' @importFrom torch torch_complex
 #' @importFrom torch torch_exp
+#'
 #' @param w0 the non-dimensional frequency constant. If this is set too low,
 #' then the wavelet does not sample very well: a value higher than 5 should be ok.
-#' Terrence and Compo set it to 6.
+#' Torrence and Compo set it to 6.
 #'
 #' @export
 Morlet <- R6::R6Class(
   "Morlet",
+  inherit = Wavelet,
   public = list(
+    #' @field is_complex whether the wavelet representation in the time domain is complex
+    is_complex = TRUE,
     #' @field w0 the non-dimensional frequency constant.
     w0 = NULL,
     #' @field C_d value of C_d from TC98
@@ -77,9 +125,9 @@ Morlet <- R6::R6Class(
     frequency = function(w, s = 1) {
       x <- w * s
       # Heaviside mock
-      Hw <- if (w <= 0) 0 else 1
+      Hw <- torch_where(w < 0, 0, 1)
       f <- pi^-.25 * Hw * torch_exp((-(x - self$w0)^2) / 2)
-      as.numeric(f)
+      f
     },
     #' @description The e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the timescale over which an edge
@@ -116,7 +164,10 @@ Morlet <- R6::R6Class(
 #' @export
 DerivativeOfGaussian <- R6::R6Class(
   "Derivative of Gaussian",
+  inherit = Wavelet,
   public = list(
+    #' @field is_complex whether the wavelet representation in the time domain is complex
+    is_complex = FALSE,
     #' @field m the order of the derivative
     m = NULL,
     #' @field C_d value of C_d from TC98
@@ -164,7 +215,7 @@ DerivativeOfGaussian <- R6::R6Class(
       const = -torch_complex(0, 1)^m / gamma(m + 0.5)^.5
       output <- x^m * torch_exp(-x^2 / 2)
       output <- output * const
-      as.numeric(output)
+      output
     },
     #' @description The e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the timescale over which an edge
@@ -185,10 +236,16 @@ DerivativeOfGaussian <- R6::R6Class(
 #'
 #' @param m the order
 #'
+#' @importFrom torch torch_float32
+#' @importFrom torch torch_float64
+#'
 #' @export
 Paul <- R6::R6Class(
   "Paul",
+  inherit = Wavelet,
   public = list(
+    #' @field is_complex whether the wavelet representation in the time domain is complex
+    is_complex = TRUE,
     #' @field m the order of the derivative
     m = NULL,
     #' @description save `m`
@@ -226,13 +283,12 @@ Paul <- R6::R6Class(
     frequency = function(w, s = 1) {
       m <- self$m
       x <- w * s
-      # Heaviside mock
+      x <- x$to(dtype = torch_float64())
       Hw <- 0.5 * (sign(x) + 1)
-      # pre-factor
+      functional_form <- Hw * x^m * torch_exp(-x)
       const <- 2^m / (m * factorial(2 * m - 1))^ .5
-      functional_form <- Hw * (x)^m * torch_exp(-x)
       output <- const * functional_form
-      as.numeric(output)
+      output$to(dtype = torch_float32())
     },
     #' @description the e-folding time for the autocorrelation of wavelet
     #' power at each scale, i.e. the time scale over which an edge

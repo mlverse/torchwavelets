@@ -8,13 +8,14 @@ test_that("wavelet_transform fields and methods (using Morlet wavelet)", {
 
   t <- torch::torch_linspace(0, 10, floor(10 / dt))
   frequencies <- torch::torch_tensor(runif(batch_size, -0.5, 2.0))
+  # for transformation in time
   batch <- torch::torch_zeros(batch_size, length(t))
   for (f in 1:length(frequencies)) {
     batch[f, ] <- torch::torch_sin(2 * pi * frequencies[f] * t)
   }
 
   wavelet <- Morlet$new()
-  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
+  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet, fourier = FALSE)
 
   ### test access to wavelet methods ###
   x <- wtf$scale_from_period(wtf$fourier_period(s = 1))
@@ -136,28 +137,49 @@ test_that("wavelet_transform fields and methods (using Morlet wavelet)", {
   y <- 0.1240
   expect_equal(x, y, tolerance = 1e-4)
 
-  ### test cwt ###
+  ### test cwt in time (using convd_1d()) ###
   b <- batch$view(c(dim(batch)[1], 1, dim(batch)[2]))
-  x <- wtf$cwt(b)$shape
+  x <- wtf$cwt_time(b)$shape
   y <- c(32, 46, 2, 100)
   expect_equal(x, y)
 
-  ### test forward ###
-  x <- c(as.numeric(wtf(batch)$real$mean()), as.numeric(wtf(batch)$real$min()), as.numeric(wtf(batch)$real$max()))
+  ### test cwt (delegating to cwt_time) ###
+  x <- c(as.numeric(wtf$cwt(batch)$real$mean()), as.numeric(wtf$cwt(batch)$real$min()), as.numeric(wtf$cwt(batch)$real$max()))
   y <- c(-0.0026392932315294822, -4.567781448364258, 4.5740203857421875)
   expect_equal(x, y, tolerance = 1e-1)
-  x <- c(as.numeric(wtf(batch)$imag$mean()), as.numeric(wtf(batch)$imag$min()), as.numeric(wtf(batch)$imag$max()))
+  x <- c(as.numeric(wtf$cwt(batch)$imag$mean()), as.numeric(wtf$cwt(batch)$imag$min()), as.numeric(wtf$cwt(batch)$imag$max()))
   y <- c(-0.008708901385664894, -4.636211395263672, 4.621674537658691)
   expect_equal(x, y, tolerance = 1e-1)
-  x <- c(as.numeric(wtf(batch)$abs()$mean()), as.numeric(wtf(batch)$abs()$min()), as.numeric(wtf(batch)$abs()$max()))
+  x <- c(as.numeric(wtf$cwt(batch)$abs()$mean()), as.numeric(wtf$cwt(batch)$abs()$min()), as.numeric(wtf$cwt(batch)$abs()$max()))
   y <- c(0.3943239924987704, 7.787456582134456e-09, 4.649060297586245)
   expect_equal(x, y, tolerance = 1e-1)
 
   ### test power ###
   x <- as.numeric(wtf$power(batch)$mean())
-  y <- as.numeric(wtf(batch)$abs()$square()$mean())
+  y <- as.numeric(wtf$cwt(batch)$abs()$square()$mean())
   expect_equal(x, y)
+
+  ### test cwt in frequency ###
+  # save time-domain results for comparison
+  b <- batch[1, ]
+  comp <- wtf$cwt(b)
+
+  wtf <- wavelet_transform(length(b), dt, dj, wavelet)
+  out <- wtf$cwt(b)
+
+  x <- c(as.numeric(out$real$mean()), as.numeric(out$real$min()), as.numeric(out$real$max()))
+  y <- c(as.numeric(comp$real$mean()), as.numeric(comp$real$min()), as.numeric(comp$real$max()))
+  expect_equal(x, y, tolerance = 1e-0)
+  x <- c(as.numeric(out$imag$mean()), as.numeric(out$imag$min()), as.numeric(out$imag$max()))
+  y <- c(as.numeric(comp$imag$mean()), as.numeric(comp$imag$min()), as.numeric(comp$imag$max()))
+  expect_equal(x, y, tolerance = 1e-0)
+  x <- c(as.numeric(out$abs()$mean()), as.numeric(out$abs()$min()), as.numeric(out$abs()$max()))
+  y <- c(as.numeric(comp$abs()$mean()), as.numeric(comp$abs()$min()), as.numeric(comp$abs()$max()))
+  expect_equal(x, y, tolerance = 1e-0)
+
 })
+
+
 
 test_that("wavelet_transform, Mexican Hat", {
   # expected values computed from
@@ -175,16 +197,29 @@ test_that("wavelet_transform, Mexican Hat", {
   }
 
   wavelet <- MexicanHat$new()
-  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
-  transform <- wtf(batch)
+  wtf_time <- wavelet_transform(dim(batch)[2], dt, dj, wavelet, fourier = FALSE)
+  transform_time <- wtf_time$cwt(batch)
 
-  x <- transform$shape
+  x <- transform_time$shape
   y <- c(32, 62, 100)
   expect_equal(x, y)
 
-  x <- c(as.numeric(transform$mean()), as.numeric(transform$min()), as.numeric(transform$max()))
+  x <- c(as.numeric(transform_time$mean()), as.numeric(transform_time$min()), as.numeric(transform_time$max()))
   y <- c(-0.01580384674525963, -6.3885040283203125, 6.596841335296631)
   expect_equal(x, y, tolerance = 1e-1)
+
+  ### test cwt in frequency ###
+  # save time-domain results for comparison
+  b <- batch[1, ]
+  comp <- transform_time[1, , ]
+
+  wtf <- wavelet_transform(length(b), dt, dj, wavelet)
+  out <- wtf$cwt(b)
+
+  x <- c(as.numeric(out$mean()), as.numeric(out$min()), as.numeric(out$max()))
+  y <- c(as.numeric(comp$mean()), as.numeric(comp$min()), as.numeric(comp$max()))
+  expect_equal(x, y, tolerance = 1.1)
+
 })
 
 test_that("wavelet_transform, Paul wavelet", {
@@ -202,21 +237,39 @@ test_that("wavelet_transform, Paul wavelet", {
     batch[f, ] <- torch::torch_sin(2 * pi * frequencies[f] * t)
   }
 
-  wavelet <- Paul$new()
-  wtf <- wavelet_transform(dim(batch)[2], dt, dj, wavelet)
-  transform <- wtf(batch)
+  wavelet <-Paul$new()
+  wtf_time <- wavelet_transform(dim(batch)[2], dt, dj, wavelet, fourier = FALSE)
+  transform_time <- wtf_time$cwt(batch)
 
-  x <- transform$shape
+  x <- transform_time$shape
   y <- c(32, 50, 100)
   expect_equal(x, y)
 
-  x <- c(as.numeric(wtf(batch)$real$mean()), as.numeric(wtf(batch)$real$min()), as.numeric(wtf(batch)$real$max()))
+  x <- c(as.numeric(transform_time$real$mean()), as.numeric(transform_time$real$min()), as.numeric(transform_time$real$max()))
   y <- c(-0.0029783361621269462, -4.427924633026123, 4.5088677406311035)
-  expect_equal(x, y, tolerance = 1e-0) # ??
-  x <- c(as.numeric(wtf(batch)$imag$mean()), as.numeric(wtf(batch)$imag$min()), as.numeric(wtf(batch)$imag$max()))
+  expect_equal(x, y, tolerance = 1e-0)
+  x <- c(as.numeric(transform_time$imag$mean()), as.numeric(transform_time$imag$min()), as.numeric(transform_time$imag$max()))
   y <- c(-0.002633194155512286, -5.00217866897583, 5.001322269439697)
-  expect_equal(x, y, tolerance = 1e-0) # ??
-  x <- c(as.numeric(wtf(batch)$abs()$mean()), as.numeric(wtf(batch)$abs()$min()), as.numeric(wtf(batch)$abs()$max()))
+  expect_equal(x, y, tolerance = 1e-0)
+  x <- c(as.numeric(transform_time$abs()$mean()), as.numeric(transform_time$abs()$min()), as.numeric(transform_time$abs()$max()))
   y <- c(0.676334777904302, 1.9461160282119255e-06, 5.00279809480148)
-  expect_equal(x, y, tolerance = 1e-0) # ??
+  expect_equal(x, y, tolerance = 1e-0)
+
+  ### test cwt in frequency ###
+  # save time-domain results for comparison
+  b <- batch[1, ]
+  comp <- transform_time[1, , ]
+
+  wtf <- wavelet_transform(length(b), dt, dj, wavelet)
+  out <- wtf$cwt(b)
+
+  x <- c(as.numeric(out$real$mean()), as.numeric(out$real$min()), as.numeric(out$real$max()))
+  y <- c(as.numeric(comp$real$mean()), as.numeric(comp$real$min()), as.numeric(comp$real$max()))
+  expect_equal(x, y, tolerance = 1e-0)
+  x <- c(as.numeric(out$imag$mean()), as.numeric(out$imag$min()), as.numeric(out$imag$max()))
+  y <- c(as.numeric(comp$imag$mean()), as.numeric(comp$imag$min()), as.numeric(comp$imag$max()))
+  expect_equal(x, y, tolerance = 1e-0)
+  x <- c(as.numeric(out$abs()$mean()), as.numeric(out$abs()$min()), as.numeric(out$abs()$max()))
+  y <- c(as.numeric(comp$abs()$mean()), as.numeric(comp$abs()$min()), as.numeric(comp$abs()$max()))
+  expect_equal(x, y, tolerance = 1e-0)
 })
